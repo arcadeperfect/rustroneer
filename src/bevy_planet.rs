@@ -18,13 +18,23 @@ impl Plugin for PlanetPlugin {
                 builder: PlanetBuilder::new(0),
             })
             .add_systems(Startup, (spawn_planet_root_system))
+            .add_systems(Update, (build_planet_system))
             .add_systems(Update, spawn_planet_mesh_system)
-            .add_systems(Update, (build_planet_system));
+            .add_systems(Update, (spawn_planet_colliders_system));
+
     }
 }
 
 #[derive(Component)]
-struct PlanetNeedsUpdate;
+struct NeedsMeshUpdate;
+
+#[derive(Component)]
+struct NeedsColliderUpdate;
+
+#[derive(Component)]
+struct PlanetColliderTag;
+
+
 
 #[derive(Resource)]
 pub struct PlanetBuilderResource {
@@ -77,7 +87,8 @@ fn build_planet_system(
             Ok(planet) => {
                 if let Ok((entity, mut bevy_planet)) = planet_query.get_single_mut() {
                     bevy_planet.planet = Some(planet);
-                    commands.entity(entity).insert(PlanetNeedsUpdate);
+                    commands.entity(entity).insert(NeedsMeshUpdate);
+                    commands.entity(entity).insert(NeedsColliderUpdate);
                 }
             }
             Err(err) => {
@@ -91,18 +102,16 @@ fn build_planet_system(
     events.clear();
 }
 
+
 fn spawn_planet_mesh_system(
     mut commands: Commands,
-    planet_query: Query<(&BevyPlanet, &PlanetNeedsUpdate), With<Name>>,
+    planet_query: Query<(&BevyPlanet, &NeedsMeshUpdate), With<Name>>,
     
     mut meshes: ResMut<Assets<Mesh>>,
     mut line_materials: ResMut<Assets<LineMaterial>>,
     mut mesh_query: Query<(Entity, &mut PlanetMeshTag)>,
     mut planet_root_query: Query<(Entity, &mut PlanetRootTag)>,
 ) {
-    // Despawn all existing mesh entities
-    
-
     for (bevy_planet, _) in planet_query.iter() {
         if let Some(planet) = bevy_planet.planet.as_ref() {
             for (mesh_entity, _) in mesh_query.iter_mut() {
@@ -131,26 +140,68 @@ fn spawn_planet_mesh_system(
 
             if let Ok((entity, _)) = planet_root_query.get_single_mut() {
                 commands.entity(entity).push_children(&[mesh_child]);
-                commands.entity(entity).remove::<PlanetNeedsUpdate>();
+                commands.entity(entity).remove::<NeedsMeshUpdate>();
             }
-
-            
-
         }
     }
 }
 
-fn test_lines(query: Query<&BevyPlanet>) {
-    let bevy_planet = query.single();
-    let p = bevy_planet.planet.as_ref();
 
-    if let Some(planet) = p {
-        let verts = planet.get_line_list();
-        println!("verts len {}", verts.len());
-    } else {
-        println!("no planet found");
+fn spawn_planet_colliders_system(
+    mut commands: Commands,
+    mut planet_query: Query<(Entity, &BevyPlanet, &NeedsColliderUpdate)>,
+    mut collider_query: Query<Entity, With<PlanetColliderTag>>,
+){
+
+    
+
+
+    for (planet_entity, planet, needs_update) in planet_query.iter() {
+        if let Some(planet) = planet.planet.as_ref() {
+
+
+            for entity in collider_query.iter() {
+                commands.entity(entity).despawn();
+            }
+
+            let colliders = get_colliders(&planet.poly_lines);
+
+            let mut childs = Vec::new();
+
+            for collider in colliders {
+                childs.push(
+                    commands
+                        .spawn(collider)
+                        .insert(TransformBundle::from(Transform::default()))
+                        .insert(Name::new("Collider"))
+                        .insert(PlanetColliderTag)
+                        .id(),
+                )
+            }       
+
+            commands.entity(planet_entity).push_children(&childs);
+            commands.entity(planet_entity).remove::<NeedsColliderUpdate>();
+        }
     }
 }
+
+
+
+
+fn get_colliders(vecs: &Vec<Vec<Vec2>>) -> Vec<Collider> {
+    let mut colliders = Vec::new();
+    for vec in vecs {
+        colliders.push(Collider::polyline(vec.clone(), None));
+    }
+
+    println!("found {:?} colliders", colliders.len());
+
+    return colliders;
+}
+
+
+
+
 
 impl From<UiState> for PlanetOptions {
     fn from(ui_state: UiState) -> Self {
