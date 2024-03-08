@@ -1,23 +1,28 @@
 use bevy::prelude::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_planet::PlanetBuilderResource;
 use bevy_rapier2d::prelude::*;
 use camera::MyCameraPlugin;
 use physics::PhysicsPlugin;
+use planet::{PlanetData, PlanetOptions};
 use player::MyPlayerPlugin;
+use ui::{PlanetUiPlugin, UiChangedEvent};
 
 
+
+
+use crate::types::UiState;
+
+mod bevy_planet;
+mod camera;
+mod line;
+mod physics;
 mod player;
 mod traits;
-mod camera;
-mod physics;
-mod bevy_planet;
-
-
-
+mod ui;
+mod types;
 
 #[derive(Component)]
 pub struct PlayerTag;
-
 
 fn main() {
     App::new()
@@ -31,21 +36,59 @@ fn main() {
             ..Default::default()
         })
         .add_plugins((
+            PlanetUiPlugin,
             MyPlayerPlugin,
-            PhysicsPlugin, 
+            PhysicsPlugin,
             MyCameraPlugin,
-            bevy_planet::PlumbetPlugin
         ))
-        .add_plugins(WorldInspectorPlugin::new())
-        // .add_systems(Startup, (spawn_planet))
+        // .add_systems(Update, rebuild_planet)
         .run();
 }
 
+// fn temp_function(){
+
+// }
+
+// fn rebuild_planet(
+//     mut commands: Commands,
+//     mut builder_resource: ResMut<PlanetBuilderResource>,
+//     mut events: EventReader<SliderChangedEvent>
+// ) {
 
 
+//     // let t = UiState::default();
+//     // println!("{:?}", t);
+
+//     if !events.is_empty() {
+//         let v = events.read();
+//         for i in v{
+//             // println!("{:?}", i.ui_state);
+
+//             let options = PlanetOptions::from(i.ui_state.clone());
+
+//             let new_planet: Planet = builder_resource.builder.build(options).unwrap();
+
+//         }
+//         events.clear();
+//     }
+// }
 
 
-// fn build_planet(){
-//     let p = PlanetBuilder::new(PlanetOptions::default());
-    
+// impl From<UiState> for PlanetOptions{
+//     fn from(ui_state: UiState) -> Self {
+//         Self {
+//             seed: 0,
+//             min_room_size: 20,
+
+//             frequency: ui_state.frequency,
+//             amplitude: ui_state.amplitude,
+//             radius: ui_state.radius,
+//             resolution: ui_state.resolution,
+//             thresh: ui_state.thresh,
+//             iterations: ui_state.iterations,
+//             weight: ui_state.weight,
+//             blur: ui_state.blur,
+
+//         }
+//     }
 // }

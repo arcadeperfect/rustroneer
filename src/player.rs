@@ -24,7 +24,7 @@ fn spawn_player(mut cmd: Commands) {
             torque: 0.0,
         })
         .insert(PlayerTag)
-        .insert(Damping { linear_damping: 1., angular_damping: 1.0 });
+        .insert(Damping { linear_damping: 1., angular_damping: 1.0 })
         ;
 }
 

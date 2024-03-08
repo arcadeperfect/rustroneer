@@ -1,43 +1,171 @@
-use bevy::{ecs::bundle, prelude::*};
+use anyhow::Result;
+use bevy::{ecs::query, prelude::*, transform::commands, utils::tracing};
 use bevy_rapier2d::prelude::*;
-use planet::{Planet, PlanetBuilder, PlanetOptions};
+use planet::{PlanetBuilder, PlanetData, PlanetOptions};
 
-pub struct PlumbetPlugin;
+use crate::{
+    line::{LineList, LineMaterial},
+    types::UiState,
+    ui::UiChangedEvent,
+};
 
-impl Plugin for PlumbetPlugin {
+pub struct PlanetPlugin;
+
+impl Plugin for PlanetPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_planet);
+        app.add_plugins(MaterialPlugin::<LineMaterial>::default())
+            .insert_resource(PlanetBuilderResource {
+                builder: PlanetBuilder::new(0),
+            })
+            .add_systems(Startup, (spawn_planet_root_system))
+            .add_systems(Update, spawn_planet_mesh_system)
+            .add_systems(Update, (build_planet_system));
     }
 }
 
-fn spawn_planet(mut commands: Commands) {
-    let planet = get_planet();
-    let colliders = get_colliders(planet.contours);
+#[derive(Component)]
+struct PlanetNeedsUpdate;
 
-    let parent = commands.spawn(SpatialBundle::default()).insert(Name::new("Parent")).id();
-    let child1 = commands
-        .spawn(colliders[0].clone())
-        .insert(TransformBundle::from(Transform::default()))
-        .insert(Name::new("Child1"))
-        .id();
-    let child2 = commands
-        .spawn(colliders[1].clone())
-        .insert(TransformBundle::from(Transform::default()))
-        .insert(Name::new("Child2"))
-        .id();
-
-    commands.entity(parent).push_children(&[child1, child2]);
+#[derive(Resource)]
+pub struct PlanetBuilderResource {
+    pub builder: PlanetBuilder,
+}
+#[derive(Component)]
+pub struct BevyPlanet {
+    pub planet: Option<PlanetData>,
 }
 
-fn get_colliders(vecs: Vec<Vec<Vec2>>) -> Vec<Collider> {
-    let mut colliders = Vec::new();
-    for vec in vecs {
-        colliders.push(Collider::polyline(vec, None));
+#[derive(Component)]
+pub struct PlanetMeshTag;
+
+#[derive(Component)]
+pub struct PlanetRootTag;
+
+fn spawn_planet_root_system(mut commands: Commands) {
+    let planet = None;
+
+    commands
+        .spawn(SpatialBundle::from_transform(
+            Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::new(1., 1., 1.)),
+        ))
+        .insert(Name::new("planet"))
+        .insert(BevyPlanet { planet })
+        .insert(PlanetRootTag);
+}
+
+fn build_planet_system(
+    mut commands: Commands,
+    builder_resource: ResMut<PlanetBuilderResource>,
+    mut events: EventReader<UiChangedEvent>,
+    // mut planet_query: Query<&mut BevyPlanet, With<Name>>,
+    mut planet_query: Query<(Entity, &mut BevyPlanet), With<Name>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut line_materials: ResMut<Assets<LineMaterial>>,
+    mut mesh_query: Query<Entity, With<PlanetMeshTag>>,
+) {
+    if events.is_empty() {
+        return;
     }
-    return colliders;
+
+    let ui_event = events.read();
+    for event in ui_event {
+        let options = PlanetOptions::from(event.ui_state.clone());
+
+        let planet_data = builder_resource.builder.build(options);
+
+        match planet_data {
+            Ok(planet) => {
+                if let Ok((entity, mut bevy_planet)) = planet_query.get_single_mut() {
+                    bevy_planet.planet = Some(planet);
+                    commands.entity(entity).insert(PlanetNeedsUpdate);
+                }
+            }
+            Err(err) => {
+                tracing::error!("error building planet: {}", err);
+                if let Ok((entity, mut bevy_planet)) = planet_query.get_single_mut() {
+                    bevy_planet.planet = None;
+                }
+            }
+        }
+    }
+    events.clear();
 }
 
-fn get_planet() -> Planet {
-    let PlanetOptions = PlanetOptions::default();
-    return PlanetBuilder::new(PlanetOptions);
+fn spawn_planet_mesh_system(
+    mut commands: Commands,
+    planet_query: Query<(&BevyPlanet, &PlanetNeedsUpdate), With<Name>>,
+    
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut line_materials: ResMut<Assets<LineMaterial>>,
+    mut mesh_query: Query<(Entity, &mut PlanetMeshTag)>,
+    mut planet_root_query: Query<(Entity, &mut PlanetRootTag)>,
+) {
+    // Despawn all existing mesh entities
+    
+
+    for (bevy_planet, _) in planet_query.iter() {
+        if let Some(planet) = bevy_planet.planet.as_ref() {
+            for (mesh_entity, _) in mesh_query.iter_mut() {
+                commands.entity(mesh_entity).despawn();
+            }
+            let lines = planet.get_line_list();
+            let m = meshes.add(LineList { vertices: lines });
+
+            println!("spawning mesh");
+
+            let mesh_child = commands
+                .spawn(MaterialMeshBundle {
+                    mesh: m,
+                    transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::new(1., 1., 1.)),
+                    material: line_materials.add(LineMaterial {
+                        color: Color::WHITE,
+                    }),
+                    ..Default::default()
+                })
+                .insert(PlanetMeshTag)
+                .id();
+
+            // for (planet_root, _) in planet_root_query.iter_mut() {
+                
+            // }
+
+            if let Ok((entity, _)) = planet_root_query.get_single_mut() {
+                commands.entity(entity).push_children(&[mesh_child]);
+                commands.entity(entity).remove::<PlanetNeedsUpdate>();
+            }
+
+            
+
+        }
+    }
+}
+
+fn test_lines(query: Query<&BevyPlanet>) {
+    let bevy_planet = query.single();
+    let p = bevy_planet.planet.as_ref();
+
+    if let Some(planet) = p {
+        let verts = planet.get_line_list();
+        println!("verts len {}", verts.len());
+    } else {
+        println!("no planet found");
+    }
+}
+
+impl From<UiState> for PlanetOptions {
+    fn from(ui_state: UiState) -> Self {
+        Self {
+            seed: 0,
+            min_room_size: 20,
+
+            frequency: ui_state.frequency,
+            amplitude: ui_state.amplitude,
+            radius: ui_state.radius,
+            resolution: ui_state.resolution,
+            thresh: ui_state.thresh,
+            iterations: ui_state.iterations,
+            weight: ui_state.weight,
+            blur: ui_state.blur,
+        }
+    }
 }
