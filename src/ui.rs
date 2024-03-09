@@ -17,13 +17,23 @@ impl Plugin for PlanetUiPlugin {
         let ui_state = UiState::default();
 
         app.add_plugins(WorldInspectorPlugin::new())
-            .add_plugins(bevy_planet::PlanetPlugin)
+            // .add_plugins(bevy_planet::PlanetPlugin)
             .insert_resource(ui_state)
             .add_event::<UiChangedEvent>()
             .add_systems(Startup, init_planet_system)
             .add_systems(Update, ui_system)
-            .add_event::<UiChangedEvent>();
+            .add_event::<UiChangedEvent>()
+            .init_resource::<OccupiedScreenSpace>()
+            ;
     }
+}
+
+#[derive(Default, Resource)]
+pub struct OccupiedScreenSpace {
+    pub left: f32,
+    // top: f32,
+    // right: f32,
+    // bottom: f32,
 }
 
 #[derive(Event, Debug)]
@@ -37,14 +47,35 @@ fn init_planet_system(mut state: ResMut<UiState>, mut event_writer: EventWriter<
     });
 }
 
+
+
+// fn get_ui_dimensions_system(
+//     mut contexts: EguiContexts,
+//     mut occupied_screen_space: ResMut<OccupiedScreenSpace>,
+// ) {
+
+//     let ctx = contexts.ctx_mut();
+
+//     occupied_screen_space.left = egui::SidePanel::left("left_panel")
+//     .resizable(true)
+//     .show(ctx, |ui| {
+//         ui.label("Left resizeable panel");
+//         ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
+//     })
+//     .response
+//     .rect
+//     .width();
+// }
+
 fn ui_system(
     mut contexts: EguiContexts,
     mut state: ResMut<UiState>,
     mut event_writer: EventWriter<UiChangedEvent>,
+    mut occupied_screen_space: ResMut<OccupiedScreenSpace>
 ) {
     let mut ui_changed = false;
 
-    egui::SidePanel::left("Hello")
+    occupied_screen_space.left = egui::SidePanel::left("Hello")
         .default_width(500.)
         .show(contexts.ctx_mut(), |ui| {
             ui.style_mut().spacing.slider_width = 300.0;
@@ -105,7 +136,7 @@ fn ui_system(
                 .changed();
 
             ui_changed |= ui
-                .add(egui::Slider::new(&mut state.thresh, 1..=10).text("scale"))
+                .add(egui::Slider::new(&mut state.scale, 1.0..=10.).text("scale"))
                 .changed();
 
             if ui_changed {
@@ -113,5 +144,9 @@ fn ui_system(
                     ui_state: state.clone(),
                 });
             }
-        });
+        })
+        .response
+        .rect
+        .width()
+        ;
 }

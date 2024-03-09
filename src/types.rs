@@ -28,7 +28,7 @@ impl Default for UiState {
             iterations: 10,
             weight: 0.62,
             blur: 1.,
-            scale: 3.,
+            scale: 5.,
 
             selected_option: "planet".to_string(),
         }
