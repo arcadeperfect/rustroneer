@@ -1,5 +1,10 @@
 use anyhow::Result;
-use bevy::{ecs::query, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension, TextureFormat}}, transform::commands, utils::tracing};
+use bevy::{
+    ecs::query, prelude::*, render::{
+        render_asset::RenderAssetUsages,
+        render_resource::{Extent3d, TextureDimension, TextureFormat},
+    }, sprite::Mesh2dHandle, transform::commands, utils::tracing
+};
 use bevy_rapier2d::prelude::*;
 use planet::{PlanetBuilder, PlanetData, PlanetOptions};
 
@@ -17,15 +22,28 @@ impl Plugin for PlanetPlugin {
             .insert_resource(PlanetBuilderResource {
                 builder: PlanetBuilder::new(0),
             })
+            .insert_resource(TexturePlaneEntityResource { entity: None })
+            .insert_resource(TexturePlaneMaterialResource { material: None})
             .add_systems(Startup, spawn_planet_root_system)
             .add_systems(Update, build_planet_system)
             .add_systems(Update, spawn_planet_mesh_system)
             .add_systems(Update, spawn_planet_colliders_system)
             .add_systems(Update, update_planet_root_system)
-            .add_systems(Update, spawn_planet_map_visualiser)
-            ;
+            .add_systems(Update, spawn_planet_map_visualiser_system)
+            .add_systems(Update, update_planet_texture);    
     }
 }
+
+#[derive(Resource)]
+struct TexturePlaneEntityResource {
+    entity: Option<Entity>,
+}
+#[derive(Resource)]
+struct TexturePlaneMaterialResource {
+    material: Option<Handle<StandardMaterial>>,
+}
+
+
 
 #[derive(Component)]
 struct NeedsMeshUpdate;
@@ -55,7 +73,12 @@ pub struct PlanetMeshTag;
 #[derive(Component)]
 pub struct PlanetRootTag;
 
-fn spawn_planet_root_system(mut commands: Commands, mut state: ResMut<UiState>) {
+#[derive(Resource)]
+pub struct TexturePlanetEntity {
+    pub entity: Option<Entity>,
+}
+
+fn spawn_planet_root_system(mut commands: Commands, state: ResMut<UiState>) {
     let planet = None;
 
     let scale = state.scale;
@@ -132,6 +155,7 @@ fn spawn_planet_mesh_system(
     mut line_materials: ResMut<Assets<LineMaterial>>,
     mut mesh_query: Query<(Entity, &mut PlanetMeshTag)>,
     mut planet_root_query: Query<(Entity, &mut PlanetRootTag)>,
+    
 ) {
     for (bevy_planet, _) in planet_query.iter() {
         if let Some(planet) = bevy_planet.planet_data.as_ref() {
@@ -208,78 +232,85 @@ fn get_colliders(vecs: &Vec<Vec<Vec2>>) -> Vec<Collider> {
     return colliders;
 }
 
-impl From<UiState> for PlanetOptions {
-    fn from(ui_state: UiState) -> Self {
-        Self {
-            seed: 0,
-            min_room_size: 20,
-
-            frequency: ui_state.frequency,
-            amplitude: ui_state.amplitude,
-            radius: ui_state.radius,
-            resolution: ui_state.resolution,
-            thresh: ui_state.thresh,
-            iterations: ui_state.iterations,
-            weight: ui_state.weight,
-            blur: ui_state.blur,
-        }
-    }
-}
-
-fn spawn_planet_map_visualiser(
+fn spawn_planet_map_visualiser_system(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    state: ResMut<UiState>,
     planet_query: Query<(Entity, &BevyPlanet, &NeedsTextureUpdate), With<Name>>,
+    mut texture_plane_entity_resource: ResMut<TexturePlaneEntityResource>,
 ) {
+    let scale = state.scale;
+
     for (planet_entity, bevy_planet, needs_update) in planet_query.iter() {
         if let Some(planet) = bevy_planet.planet_data.as_ref() {
-            
             if let Some(main_map) = &planet.planetMap.main {
-                let texture_planet_material = materials.add(StandardMaterial {
-                    base_color_texture: Some(
-                        images.add(planet_map_to_bevy_image(&main_map)),
-                    ),
+                let texture_planet_material: Handle<StandardMaterial> = materials.add(StandardMaterial {
+                    base_color_texture: Some(images.add(planet_map_to_bevy_image(&main_map))),
                     unlit: true,
                     ..default()
                 });
 
                 let texture_planet_mesh = meshes.add(Plane3d::default());
-                let texture_planet_bundle = PbrBundle {
+                let texture_planet_bundle: MaterialMeshBundle<StandardMaterial> = PbrBundle {
                     mesh: texture_planet_mesh,
                     material: texture_planet_material.clone(),
-                    transform: Transform::from_xyz(-2.0, 0.0, -0.2)
+                    transform: Transform::from_xyz(0.0, 0.0, -0.2)
                         .with_rotation(Quat::from_euler(
                             EulerRot::XYZ,
                             std::f32::consts::PI / 2.,
                             0.,
                             0.,
                         ))
-                        .with_scale(Vec3::splat(1.)),
+                        .with_scale(Vec3::new(scale, scale, scale)),
                     ..default()
                 };
 
-                commands.spawn(texture_planet_bundle);
-                // commands.insert_resource(TexturePlanetMaterialHandle {
-                //     handle: texture_planet_material,
-                // });
-
+                let texture_plane_entity = commands.spawn(texture_planet_bundle).id();
+                texture_plane_entity_resource.entity = Some(texture_plane_entity);
+                
             }
 
-           
-
-
             commands
-            .entity(planet_entity)
-            .remove::<NeedsTextureUpdate>();
+                .entity(planet_entity)
+                .remove::<NeedsTextureUpdate>();
+
         }
     }
 }
 
+fn update_planet_texture(
+    mut commands: Commands,
+    mut images: ResMut<Assets<Image>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    texture_plane_entity_resource: Res<TexturePlaneEntityResource>,
+    planet_query: Query<(Entity, &BevyPlanet, &NeedsTextureUpdate), With<Name>>,
+) {
+    
+    for (planet_entity, bevy_planet, _) in planet_query.iter() {
+        if let Some(planet) = bevy_planet.planet_data.as_ref() {
+            if let Some(main_map) = &planet.planetMap.main {
+                let texture_planet_material = materials.add(StandardMaterial {
+                    base_color_texture: Some(images.add(planet_map_to_bevy_image(&main_map))),
+                    unlit: true,
+                    ..default()
+                });
 
 
-fn planet_map_to_bevy_image(map: &Vec<Vec<u16>>) -> Image {
+                // how can i apply the new material to the PBR bundle?
+                
+        
+
+                commands
+                    .entity(planet_entity)
+                    .remove::<NeedsTextureUpdate>();
+            }
+        }
+    }
+}
+
+fn planet_map_to_bevy_image(map: &Vec<Vec<u8>>) -> Image {
     let width = map.len() as u32;
     let height = map[0].len() as u32;
 
@@ -291,8 +322,11 @@ fn planet_map_to_bevy_image(map: &Vec<Vec<u16>>) -> Image {
 
     let dimension = TextureDimension::D2;
 
+    // Reverse the order of rows to flip the y dimension
+    let reversed_map: Vec<&Vec<u8>> = map.iter().rev().collect();
+
     // Assuming the u16 values are grayscale and should be mapped to RGBA where R = G = B and A = 255
-    let data: Vec<u8> = map
+    let data: Vec<u8> = reversed_map
         .iter()
         .flat_map(|row| {
             row.iter().flat_map(|&v| {

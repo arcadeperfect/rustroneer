@@ -35,3 +35,20 @@ impl Default for UiState {
     }
 }
 
+impl From<UiState> for PlanetOptions {
+    fn from(ui_state: UiState) -> Self {
+        Self {
+            seed: 0,
+            min_room_size: 20,
+
+            frequency: ui_state.frequency,
+            amplitude: ui_state.amplitude,
+            radius: ui_state.radius,
+            resolution: ui_state.resolution,
+            thresh: ui_state.thresh,
+            iterations: ui_state.iterations,
+            weight: ui_state.weight,
+            blur: ui_state.blur,
+        }
+    }
+}
