@@ -1,6 +1,6 @@
 use bevy::{
     prelude::*,
-    render::camera::{ScalingMode, Viewport},
+    render::camera::Viewport,
     window::PrimaryWindow,
 };
 

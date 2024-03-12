@@ -14,6 +14,9 @@ pub struct UiState {
     pub blur: f32,
     pub selected_option: String,
     pub scale: f32,
+    pub show_texture: bool,
+    pub show_vectors: bool,
+    pub show_debug: bool
 }
 
 impl Default for UiState {
@@ -29,6 +32,9 @@ impl Default for UiState {
             weight: 0.62,
             blur: 1.,
             scale: 5.,
+            show_texture: true,
+            show_vectors: true,
+            show_debug: true,
 
             selected_option: "planet".to_string(),
         }

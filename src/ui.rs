@@ -1,14 +1,14 @@
 use bevy::{
     app::{App, Plugin, Startup, Update},
     ecs::{
-        event::{Event, EventReader, EventWriter},
+        event::{Event, EventWriter},
         system::{ResMut, Resource},
     },
 };
-use bevy_egui::{egui, EguiContexts, EguiPlugin};
+use bevy_egui::{egui, EguiContexts};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-use crate::{bevy_planet, types::UiState};
+use crate::types::UiState;
 
 pub struct PlanetUiPlugin;
 
@@ -23,8 +23,7 @@ impl Plugin for PlanetUiPlugin {
             .add_systems(Startup, init_planet_system)
             .add_systems(Update, ui_system)
             .add_event::<UiChangedEvent>()
-            .init_resource::<OccupiedScreenSpace>()
-            ;
+            .init_resource::<OccupiedScreenSpace>();
     }
 }
 
@@ -41,13 +40,11 @@ pub struct UiChangedEvent {
     pub ui_state: UiState,
 }
 
-fn init_planet_system(mut state: ResMut<UiState>, mut event_writer: EventWriter<UiChangedEvent>) {
+fn init_planet_system(state: ResMut<UiState>, mut event_writer: EventWriter<UiChangedEvent>) {
     event_writer.send(UiChangedEvent {
         ui_state: state.clone(),
     });
 }
-
-
 
 // fn get_ui_dimensions_system(
 //     mut contexts: EguiContexts,
@@ -71,7 +68,7 @@ fn ui_system(
     mut contexts: EguiContexts,
     mut state: ResMut<UiState>,
     mut event_writer: EventWriter<UiChangedEvent>,
-    mut occupied_screen_space: ResMut<OccupiedScreenSpace>
+    mut occupied_screen_space: ResMut<OccupiedScreenSpace>,
 ) {
     let mut ui_changed = false;
 
@@ -139,6 +136,18 @@ fn ui_system(
                 .add(egui::Slider::new(&mut state.scale, 1.0..=10.).text("scale"))
                 .changed();
 
+            ui_changed |= ui
+                .checkbox(&mut state.show_texture, "Show texture")
+                .changed();
+
+            ui_changed |= ui
+                .checkbox(&mut state.show_vectors, "Show Vectors")
+                .changed();
+
+                ui_changed |= ui
+                .checkbox(&mut state.show_debug, "Show Debug")
+                .changed();
+
             if ui_changed {
                 event_writer.send(UiChangedEvent {
                     ui_state: state.clone(),
@@ -147,6 +156,5 @@ fn ui_system(
         })
         .response
         .rect
-        .width()
-        ;
+        .width();
 }
