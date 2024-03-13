@@ -18,7 +18,7 @@ fn spawn_player(mut cmd: Commands) {
     cmd.spawn(RigidBody::Dynamic)
         .insert(Collider::cuboid(0.25, 0.5))
         .insert(Name::new("gravity player"))
-        .insert(TransformBundle::from(Transform::from_xyz(0.0, 4.0, 0.0)))
+        .insert(TransformBundle::from(Transform::from_xyz(0.0, 8.0, 0.0)))
         .insert(ExternalForce {
             force: Vec2::new(0.0, 0.0),
             torque: 0.0,
@@ -29,8 +29,8 @@ fn spawn_player(mut cmd: Commands) {
 }
 
 fn move_player(mut query: Query<(&Transform, &mut ExternalForce), With<PlayerTag>>, keyboard_input: Res<ButtonInput<KeyCode>>) {
-    let move_force = 10.0;
-    let jetpack_force = 8.0;
+    let move_force = 12.0;
+    let jetpack_force = 12.0;
 
     for (transform, mut ef) in query.iter_mut() {
        
@@ -40,19 +40,19 @@ fn move_player(mut query: Query<(&Transform, &mut ExternalForce), With<PlayerTag
 
         if keyboard_input.pressed(KeyCode::KeyW) {
             ef.force += direction * jetpack_force;
-            // println!("move");
+            println!("move");
         }
         if keyboard_input.pressed(KeyCode::KeyS) {
             ef.force -= direction * move_force;
-            // println!("move");
+            println!("move");
         }
         if keyboard_input.pressed(KeyCode::KeyA) {
             ef.force += perp_clockwise * move_force;
-            // println!("move");
+            println!("move");
         }
         if keyboard_input.pressed(KeyCode::KeyD) {
             ef.force += perp_counter_clockwise * move_force;
-            // println!("move");
+            println!("move");
         }
     }
 

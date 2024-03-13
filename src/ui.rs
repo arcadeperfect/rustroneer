@@ -7,8 +7,7 @@ use bevy::{
 };
 use bevy_egui::{egui, EguiContexts};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-
-use crate::types::UiState;
+use planet::types::FractalNoiseOptions;
 
 pub struct PlanetUiPlugin;
 
@@ -72,20 +71,49 @@ fn ui_system(
 ) {
     let mut ui_changed = false;
 
+    state.noise.push(FractalNoiseOptions::default());
+    
+
     occupied_screen_space.left = egui::SidePanel::left("Hello")
         .default_width(500.)
         .show(contexts.ctx_mut(), |ui| {
             ui.style_mut().spacing.slider_width = 300.0;
-            ui_changed |= ui
-                .add(egui::Slider::new(&mut state.frequency, 0.0..=1.0).text("noise frequency"))
+
+            let mut noise_parameters_open = true;
+            ui.collapsing("Noise 1 Parameters", |ui| {
+                ui_changed |= ui
+                .add(egui::Slider::new(&mut state.noise[0].frequency, 0.0..=3.0).text("noise frequency"))
                 .changed();
 
             ui_changed |= ui
-                .add(egui::Slider::new(&mut state.amplitude, 0.0..=1.0).text("noise amplitute"))
+                .add(egui::Slider::new(&mut state.noise[0].amplitude, 0.0..=1.0).text("noise amplitute"))
                 .changed();
+
+            ui_changed |= ui
+                .add(egui::Slider::new(&mut state.noise[0].persistence, 0.0..=1.0).text("noise persistence"))
+                .changed();
+
+            ui_changed |= ui
+                .add(egui::Slider::new(&mut state.noise[0].lacunarity, 1.0..=4.0).text("noise lacunarity"))
+                .changed();
+
+            ui_changed |= ui
+                .add(egui::Slider::new(&mut state.noise[0].octaves, 0..=10).text("noise octaves"))
+                .changed();
+            });
+
+
+           
 
             ui_changed |= ui
                 .add(egui::Slider::new(&mut state.radius, 0.0..=1.0).text("circle radius"))
+                .changed();
+
+            ui_changed |= ui
+                .add(
+                    egui::Slider::new(&mut state.crust_thickness, 0.0..=1.0)
+                        .text("crust thickness"),
+                )
                 .changed();
 
             ui_changed |= ui
@@ -93,15 +121,25 @@ fn ui_system(
                 .changed();
 
             ui_changed |= ui
-                .add(egui::Slider::new(&mut state.weight, 0.0..=1.).text("c.a. init noise weight"))
+                .add(
+                    egui::Slider::new(&mut state.ca_init_weight, 0.0..=1.)
+                        .text("c.a. init noise weight"),
+                )
                 .changed();
 
             ui_changed |= ui
-                .add(egui::Slider::new(&mut state.iterations, 0..=150).text("c.a. iterations"))
+                .add(egui::Slider::new(&mut state.ca_iterations, 0..=150).text("c.a. iterations"))
                 .changed();
 
             ui_changed |= ui
-                .add(egui::Slider::new(&mut state.thresh, 0..=8).text("c.a. threshold"))
+                .add(egui::Slider::new(&mut state.ca_thresh, 0..=8).text("c.a. threshold"))
+                .changed();
+
+            ui_changed |= ui
+                .add(
+                    egui::Slider::new(&mut state.ca_searh_radius, 0..=15)
+                        .text("c.a. search radius"),
+                )
                 .changed();
 
             ui_changed |= ui
@@ -111,29 +149,37 @@ fn ui_system(
             ui_changed |= ui
                 .radio_value(
                     &mut state.selected_option,
-                    "planet".to_string(),
-                    "planet buffer",
+                    SelectedOption::Planet_raw,
+                    "planet raw",
                 )
                 .changed();
 
             ui_changed |= ui
                 .radio_value(
                     &mut state.selected_option,
-                    "data".to_string(),
-                    "data buffer",
+                    SelectedOption::Planet_processed,
+                    "planet processed",
                 )
                 .changed();
 
             ui_changed |= ui
                 .radio_value(
                     &mut state.selected_option,
-                    "debug".to_string(),
-                    "debug buffer",
+                    SelectedOption::Altitude,
+                    "altitude",
                 )
                 .changed();
 
             ui_changed |= ui
-                .add(egui::Slider::new(&mut state.scale, 1.0..=10.).text("scale"))
+                .radio_value(&mut state.selected_option, SelectedOption::Depth, "depth")
+                .changed();
+
+            ui_changed |= ui
+                .radio_value(&mut state.selected_option, SelectedOption::Debug, "debug")
+                .changed();
+
+            ui_changed |= ui
+                .add(egui::Slider::new(&mut state.scale, 5.0..=100.).text("scale"))
                 .changed();
 
             ui_changed |= ui
@@ -144,9 +190,7 @@ fn ui_system(
                 .checkbox(&mut state.show_vectors, "Show Vectors")
                 .changed();
 
-                ui_changed |= ui
-                .checkbox(&mut state.show_debug, "Show Debug")
-                .changed();
+            ui_changed |= ui.checkbox(&mut state.show_debug, "Show Debug").changed();
 
             if ui_changed {
                 event_writer.send(UiChangedEvent {
@@ -157,4 +201,76 @@ fn ui_system(
         .response
         .rect
         .width();
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum SelectedOption {
+    Planet_raw,
+    Planet_processed,
+    Altitude,
+    Depth,
+    Debug,
+}
+
+#[derive(Resource, Debug, Clone)]
+pub struct UiState {
+    pub changed: bool,
+
+    
+
+
+    // pub frequency: f32,
+
+    pub noise: Vec<FractalNoiseOptions>,
+
+
+    // pub amplitude: f32,
+    // pub persistence: f32,
+    // pub lacunarity: f32,
+    // pub octaves: u32,
+    pub radius: f32,
+    pub resolution: u32,
+    pub ca_thresh: u32,
+    pub ca_iterations: u32,
+    pub ca_init_weight: f32,
+    pub ca_searh_radius: u32,
+    pub blur: f32,
+    pub selected_option: SelectedOption,
+    pub scale: f32,
+    pub show_texture: bool,
+    pub show_vectors: bool,
+    pub show_debug: bool,
+    pub crust_thickness: f32,
+}
+
+impl Default for UiState {
+    fn default() -> Self {
+        Self {
+            changed: false,
+            // frequency: 0.,
+            // amplitude: 0.,
+            // persistence: 0.,
+            // lacunarity: 0.,
+            // octaves: 1,
+
+            noise: Vec::new(),
+
+
+            radius: 1.,
+            resolution: 100,
+            ca_thresh: 4,
+            ca_iterations: 1,
+            ca_init_weight: 0.62,
+            blur: 1.,
+            scale: 100.,
+            show_texture: true,
+            show_vectors: true,
+            show_debug: true,
+
+            crust_thickness: 0.0,
+            ca_searh_radius: 3,
+
+            selected_option: SelectedOption::Planet_raw,
+        }
+    }
 }

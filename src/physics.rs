@@ -56,7 +56,7 @@ fn update_debug(
     mut events: EventReader<UiChangedEvent>,
 ) {
     for event in events.read() {
-        println!("{:?}", event.ui_state.show_debug);
+        // println!("{:?}", event.ui_state.show_debug);
         rapier_debug_render_plugin.enabled = event.ui_state.show_debug;
     }
 }
