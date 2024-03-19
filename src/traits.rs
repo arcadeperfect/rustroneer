@@ -29,3 +29,4 @@ impl FromVec2<Vec3> for Vec3{
         Vec3::new(self.x, self.y, 0.)
     }
 }
+

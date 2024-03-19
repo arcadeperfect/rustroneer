@@ -83,6 +83,9 @@ pub struct TexturePlanetEntity {
 fn spawn_planet_root_system(mut commands: Commands, state: ResMut<UiState>) {
     let planet = None;
 
+
+    
+
     let scale = state.scale;
 
     commands
@@ -136,6 +139,9 @@ fn rebuild_planet_system(
 
         let state = event.ui_state.clone();
         let options = PlanetOptions::from(event.ui_state.clone());
+
+        // dbg!(&options);
+
         // let fractal_options = FractalNoiseOptions{
         //     frequency: state.noise1.frequency as f64,
         //     lacunarity: state.noise1.lacunarity as f64,
@@ -154,6 +160,11 @@ fn rebuild_planet_system(
         // let fractal_options_vec = vec![
         //     &fractal_options_1
         // ];
+
+
+        // let fractal_options = state.noise;
+
+        // println!("fractal options: {:?}", state.noise.len());
 
         let planet_data = builder_resource.builder.build(options, state.noise.iter().collect());
         match planet_data {

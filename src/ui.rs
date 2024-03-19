@@ -71,40 +71,182 @@ fn ui_system(
 ) {
     let mut ui_changed = false;
 
-    state.noise.push(FractalNoiseOptions::default());
-    
+    // state.noise.push(FractalNoiseOptions::default());
+    // state.noise = vec![FractalNoiseOptions::default()];
+
+    let a = 10.;
+    let b = 5.;
+
 
     occupied_screen_space.left = egui::SidePanel::left("Hello")
         .default_width(500.)
         .show(contexts.ctx_mut(), |ui| {
             ui.style_mut().spacing.slider_width = 300.0;
 
+            ui.add_space(a);
+            let heading_style = egui::TextStyle::Heading;
+            let c = 180;
+            ui.label(
+                egui::RichText::new("Noise")
+                    .text_style(heading_style)
+                    .color(egui::Color32::from_rgb(c, c, c)),
+            );
+            ui.add_space(b);
+
             let mut noise_parameters_open = true;
             ui.collapsing("Noise 1 Parameters", |ui| {
                 ui_changed |= ui
-                .add(egui::Slider::new(&mut state.noise[0].frequency, 0.0..=3.0).text("noise frequency"))
-                .changed();
+                    .add(
+                        egui::Slider::new(&mut state.noise[0].frequency, 0.0..=3.0)
+                            .text("noise frequency"),
+                    )
+                    .changed();
 
-            ui_changed |= ui
-                .add(egui::Slider::new(&mut state.noise[0].amplitude, 0.0..=1.0).text("noise amplitute"))
-                .changed();
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[0].amplitude, 0.0..=1.0)
+                            .text("noise amplitute"),
+                    )
+                    .changed();
 
-            ui_changed |= ui
-                .add(egui::Slider::new(&mut state.noise[0].persistence, 0.0..=1.0).text("noise persistence"))
-                .changed();
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[0].persistence, 0.0..=1.0)
+                            .text("noise persistence"),
+                    )
+                    .changed();
 
-            ui_changed |= ui
-                .add(egui::Slider::new(&mut state.noise[0].lacunarity, 1.0..=4.0).text("noise lacunarity"))
-                .changed();
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[0].lacunarity, 1.0..=4.0)
+                            .text("noise lacunarity"),
+                    )
+                    .changed();
 
-            ui_changed |= ui
-                .add(egui::Slider::new(&mut state.noise[0].octaves, 0..=10).text("noise octaves"))
-                .changed();
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[0].octaves, 0..=10)
+                            .text("noise octaves"),
+                    )
+                    .changed();
+            });
+            ui.collapsing("Noise 2 Parameters", |ui| {
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[1].frequency, 0.0..=3.0)
+                            .text("noise frequency"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[1].amplitude, 0.0..=1.0)
+                            .text("noise amplitute"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[1].persistence, 0.0..=1.0)
+                            .text("noise persistence"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[1].lacunarity, 1.0..=4.0)
+                            .text("noise lacunarity"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[1].octaves, 0..=10)
+                            .text("noise octaves"),
+                    )
+                    .changed();
             });
 
+            ui.collapsing("Noise 3 Parameters", |ui| {
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[2].frequency, 0.0..=3.0)
+                            .text("noise frequency"),
+                    )
+                    .changed();
 
-           
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[2].amplitude, 0.0..=1.0)
+                            .text("noise amplitute"),
+                    )
+                    .changed();
 
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[2].persistence, 0.0..=1.0)
+                            .text("noise persistence"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[2].lacunarity, 1.0..=4.0)
+                            .text("noise lacunarity"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise[2].octaves, 0..=10)
+                            .text("noise octaves"),
+                    )
+                    .changed();
+            });
+
+            ui.collapsing("Mask parameters", |ui| {
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.mask_frequency, 0.0..=3.0)
+                            .text("mask frequency"),
+                    )
+                    .changed();
+                ui_changed |= ui
+                    .add(egui::Slider::new(&mut state.mask_z, 0.0..=20.0).text("mask z"))
+                    .changed();
+            });
+
+            ui_changed |= ui
+                .add(
+                    egui::Slider::new(&mut state.displacement_scale, 0.0..=10.0)
+                        .text("displacement scale"),
+                )
+                .changed();
+
+            ui_changed |= ui
+                .add(
+                    egui::Slider::new(&mut state.displacement_frequency, 0.0..=10.0)
+                        .text("displacement frequency"),
+                )
+                .changed();
+
+            ui_changed |= ui
+                .add(
+                    egui::Slider::new(&mut state.global_amplitude, 0.0..=2.0)
+                        .text("global amplitude"),
+                )
+                .changed();
+
+            ui.add_space(a);
+            let heading_style = egui::TextStyle::Heading;
+            let c = 180;
+            ui.label(
+                egui::RichText::new("Initial")
+                    .text_style(heading_style)
+                    .color(egui::Color32::from_rgb(c, c, c)),
+            );
+            ui.add_space(b);
+            
             ui_changed |= ui
                 .add(egui::Slider::new(&mut state.radius, 0.0..=1.0).text("circle radius"))
                 .changed();
@@ -120,6 +262,16 @@ fn ui_system(
                 .add(egui::Slider::new(&mut state.resolution, 10..=800).text("resolution"))
                 .changed();
 
+            ui.add_space(a);
+            let heading_style = egui::TextStyle::Heading;
+            let c = 180;
+            ui.label(
+                egui::RichText::new("Cellular Automata")
+                    .text_style(heading_style)
+                    .color(egui::Color32::from_rgb(c, c, c)),
+            );
+            ui.add_space(b);
+
             ui_changed |= ui
                 .add(
                     egui::Slider::new(&mut state.ca_init_weight, 0.0..=1.)
@@ -132,7 +284,11 @@ fn ui_system(
                 .changed();
 
             ui_changed |= ui
-                .add(egui::Slider::new(&mut state.ca_thresh, 0..=8).text("c.a. threshold"))
+                .add(egui::Slider::new(&mut state.ca_thresh, 0..=16).text("c.a. threshold"))
+                .changed();
+
+                ui_changed |= ui
+                .add(egui::Slider::new(&mut state.ca_misc, -16..=16).text("c.a. misc"))
                 .changed();
 
             ui_changed |= ui
@@ -142,9 +298,33 @@ fn ui_system(
                 )
                 .changed();
 
+                ui_changed |= ui
+                .checkbox(&mut state.invert_ca, "Invert")
+                .changed();
+
+            ui.add_space(a);
+            let heading_style = egui::TextStyle::Heading;
+            let c = 180;
+            ui.label(
+                egui::RichText::new("Post Processing")
+                    .text_style(heading_style)
+                    .color(egui::Color32::from_rgb(c, c, c)),
+            );
+            ui.add_space(b);
+
             ui_changed |= ui
                 .add(egui::Slider::new(&mut state.blur, 0.0..=8.).text("post blur"))
                 .changed();
+
+            ui.add_space(a);
+            let heading_style = egui::TextStyle::Heading;
+            let c = 180;
+            ui.label(
+                egui::RichText::new("Display")
+                    .text_style(heading_style)
+                    .color(egui::Color32::from_rgb(c, c, c)),
+            );
+            ui.add_space(b);
 
             ui_changed |= ui
                 .radio_value(
@@ -179,10 +359,6 @@ fn ui_system(
                 .changed();
 
             ui_changed |= ui
-                .add(egui::Slider::new(&mut state.scale, 5.0..=100.).text("scale"))
-                .changed();
-
-            ui_changed |= ui
                 .checkbox(&mut state.show_texture, "Show texture")
                 .changed();
 
@@ -191,6 +367,19 @@ fn ui_system(
                 .changed();
 
             ui_changed |= ui.checkbox(&mut state.show_debug, "Show Debug").changed();
+
+            ui.add_space(10.0);
+            let heading_style = egui::TextStyle::Heading;
+            let c = 180;
+            ui.label(
+                egui::RichText::new("Entity")
+                    .text_style(heading_style)
+                    .color(egui::Color32::from_rgb(c, c, c)),
+            );
+
+            ui_changed |= ui
+                .add(egui::Slider::new(&mut state.scale, 5.0..=100.).text("scale"))
+                .changed();
 
             if ui_changed {
                 event_writer.send(UiChangedEvent {
@@ -215,25 +404,17 @@ pub enum SelectedOption {
 #[derive(Resource, Debug, Clone)]
 pub struct UiState {
     pub changed: bool,
-
-    
-
-
-    // pub frequency: f32,
-
     pub noise: Vec<FractalNoiseOptions>,
-
-
-    // pub amplitude: f32,
-    // pub persistence: f32,
-    // pub lacunarity: f32,
-    // pub octaves: u32,
+    pub mask_frequency: f64,
+    pub mask_z: f64,
+    pub global_amplitude: f32,
     pub radius: f32,
     pub resolution: u32,
     pub ca_thresh: u32,
     pub ca_iterations: u32,
     pub ca_init_weight: f32,
     pub ca_searh_radius: u32,
+    pub ca_misc: i32,
     pub blur: f32,
     pub selected_option: SelectedOption,
     pub scale: f32,
@@ -241,36 +422,41 @@ pub struct UiState {
     pub show_vectors: bool,
     pub show_debug: bool,
     pub crust_thickness: f32,
+    pub displacement_scale: f64,
+    pub displacement_frequency: f64,
+    pub invert_ca: bool,
 }
 
 impl Default for UiState {
     fn default() -> Self {
         Self {
             changed: false,
-            // frequency: 0.,
-            // amplitude: 0.,
-            // persistence: 0.,
-            // lacunarity: 0.,
-            // octaves: 1,
+            noise: vec![
+                FractalNoiseOptions::default(),
+                FractalNoiseOptions::default(),
+                FractalNoiseOptions::default(),
+            ],
 
-            noise: Vec::new(),
-
-
+            global_amplitude: 1.0,
+            mask_frequency: 0.5,
+            mask_z: 0.0,
             radius: 1.,
-            resolution: 100,
+            resolution: 200,
             ca_thresh: 4,
             ca_iterations: 1,
             ca_init_weight: 0.62,
+            ca_misc: 0,
             blur: 1.,
             scale: 100.,
             show_texture: true,
             show_vectors: true,
-            show_debug: true,
-
+            show_debug: false,
             crust_thickness: 0.0,
             ca_searh_radius: 3,
-
             selected_option: SelectedOption::Planet_raw,
+            displacement_scale: 0.0,
+            displacement_frequency: 0.0,
+            invert_ca: false,
         }
     }
 }
