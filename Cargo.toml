@@ -16,6 +16,11 @@ bevy_rapier2d = {version = "0.25.0", features = ["simd-stable", "debug-render-2d
 image = "0.24.9"
 planet = {path = "../planet"}
 bevy_tweening = "0.10.0"
+serde = "1.0.197"
+serde_json = "1.0.114"
+serde_yaml = "0.9.33"
+dotenv = "0.15.0"
+rand = "0.8.5"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
@@ -24,3 +29,4 @@ opt-level = 1
 # Enable high optimizations for dependencies (incl. Bevy), but not for our code:
 [profile.dev.package."*"]
 opt-level = 3
+

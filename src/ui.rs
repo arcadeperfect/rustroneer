@@ -5,15 +5,19 @@ use bevy::{
         system::{ResMut, Resource},
     },
 };
-use bevy_egui::{egui, EguiContexts};
+use bevy_egui::{egui::{self}, EguiContexts};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use planet::types::FractalNoiseOptions;
+
+
+use crate::ui_state::{SelectedOption, UiState};
+
 
 pub struct PlanetUiPlugin;
 
 impl Plugin for PlanetUiPlugin {
     fn build(&self, app: &mut App) {
-        let ui_state = UiState::default();
+
+        let ui_state: UiState = UiState::load().unwrap_or_default();
 
         app.add_plugins(WorldInspectorPlugin::new())
             // .add_plugins(bevy_planet::PlanetPlugin)
@@ -45,45 +49,24 @@ fn init_planet_system(state: ResMut<UiState>, mut event_writer: EventWriter<UiCh
     });
 }
 
-// fn get_ui_dimensions_system(
-//     mut contexts: EguiContexts,
-//     mut occupied_screen_space: ResMut<OccupiedScreenSpace>,
-// ) {
-
-//     let ctx = contexts.ctx_mut();
-
-//     occupied_screen_space.left = egui::SidePanel::left("left_panel")
-//     .resizable(true)
-//     .show(ctx, |ui| {
-//         ui.label("Left resizeable panel");
-//         ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
-//     })
-//     .response
-//     .rect
-//     .width();
-// }
-
 fn ui_system(
     mut contexts: EguiContexts,
     mut state: ResMut<UiState>,
     mut event_writer: EventWriter<UiChangedEvent>,
     mut occupied_screen_space: ResMut<OccupiedScreenSpace>,
 ) {
+
     let mut ui_changed = false;
 
-    // state.noise.push(FractalNoiseOptions::default());
-    // state.noise = vec![FractalNoiseOptions::default()];
-
-    let a = 10.;
-    let b = 5.;
-
+    let smaller_space = 10.;
+    let larger_space = 5.;
 
     occupied_screen_space.left = egui::SidePanel::left("Hello")
         .default_width(500.)
         .show(contexts.ctx_mut(), |ui| {
             ui.style_mut().spacing.slider_width = 300.0;
 
-            ui.add_space(a);
+            ui.add_space(smaller_space);
             let heading_style = egui::TextStyle::Heading;
             let c = 180;
             ui.label(
@@ -91,7 +74,7 @@ fn ui_system(
                     .text_style(heading_style)
                     .color(egui::Color32::from_rgb(c, c, c)),
             );
-            ui.add_space(b);
+            ui.add_space(larger_space);
 
             let mut noise_parameters_open = true;
             ui.collapsing("Noise 1 Parameters", |ui| {
@@ -237,7 +220,7 @@ fn ui_system(
                 )
                 .changed();
 
-            ui.add_space(a);
+            ui.add_space(smaller_space);
             let heading_style = egui::TextStyle::Heading;
             let c = 180;
             ui.label(
@@ -245,8 +228,8 @@ fn ui_system(
                     .text_style(heading_style)
                     .color(egui::Color32::from_rgb(c, c, c)),
             );
-            ui.add_space(b);
-            
+            ui.add_space(larger_space);
+
             ui_changed |= ui
                 .add(egui::Slider::new(&mut state.radius, 0.0..=1.0).text("circle radius"))
                 .changed();
@@ -262,7 +245,7 @@ fn ui_system(
                 .add(egui::Slider::new(&mut state.resolution, 10..=800).text("resolution"))
                 .changed();
 
-            ui.add_space(a);
+            ui.add_space(smaller_space);
             let heading_style = egui::TextStyle::Heading;
             let c = 180;
             ui.label(
@@ -270,7 +253,7 @@ fn ui_system(
                     .text_style(heading_style)
                     .color(egui::Color32::from_rgb(c, c, c)),
             );
-            ui.add_space(b);
+            ui.add_space(larger_space);
 
             ui_changed |= ui
                 .add(
@@ -287,7 +270,7 @@ fn ui_system(
                 .add(egui::Slider::new(&mut state.ca_thresh, 0..=16).text("c.a. threshold"))
                 .changed();
 
-                ui_changed |= ui
+            ui_changed |= ui
                 .add(egui::Slider::new(&mut state.ca_misc, -16..=16).text("c.a. misc"))
                 .changed();
 
@@ -298,11 +281,9 @@ fn ui_system(
                 )
                 .changed();
 
-                ui_changed |= ui
-                .checkbox(&mut state.invert_ca, "Invert")
-                .changed();
+            ui_changed |= ui.checkbox(&mut state.invert_ca, "Invert").changed();
 
-            ui.add_space(a);
+            ui.add_space(smaller_space);
             let heading_style = egui::TextStyle::Heading;
             let c = 180;
             ui.label(
@@ -310,13 +291,13 @@ fn ui_system(
                     .text_style(heading_style)
                     .color(egui::Color32::from_rgb(c, c, c)),
             );
-            ui.add_space(b);
+            ui.add_space(larger_space);
 
             ui_changed |= ui
                 .add(egui::Slider::new(&mut state.blur, 0.0..=8.).text("post blur"))
                 .changed();
 
-            ui.add_space(a);
+            ui.add_space(smaller_space);
             let heading_style = egui::TextStyle::Heading;
             let c = 180;
             ui.label(
@@ -324,38 +305,42 @@ fn ui_system(
                     .text_style(heading_style)
                     .color(egui::Color32::from_rgb(c, c, c)),
             );
-            ui.add_space(b);
+            ui.add_space(larger_space);
 
             ui_changed |= ui
                 .radio_value(
-                    &mut state.selected_option,
-                    SelectedOption::Planet_raw,
+                    &mut state.bitmap_dislpay,
+                    SelectedOption::PlanetRaw,
                     "planet raw",
                 )
                 .changed();
 
             ui_changed |= ui
                 .radio_value(
-                    &mut state.selected_option,
-                    SelectedOption::Planet_processed,
+                    &mut state.bitmap_dislpay,
+                    SelectedOption::PlanetProcessed,
                     "planet processed",
                 )
                 .changed();
 
             ui_changed |= ui
                 .radio_value(
-                    &mut state.selected_option,
+                    &mut state.bitmap_dislpay,
                     SelectedOption::Altitude,
                     "altitude",
                 )
                 .changed();
 
             ui_changed |= ui
-                .radio_value(&mut state.selected_option, SelectedOption::Depth, "depth")
+                .radio_value(&mut state.bitmap_dislpay, SelectedOption::Depth, "depth")
                 .changed();
 
             ui_changed |= ui
-                .radio_value(&mut state.selected_option, SelectedOption::Debug, "debug")
+                .radio_value(&mut state.bitmap_dislpay, SelectedOption::RoomsRaw, "rooms raw")
+                .changed();
+
+            ui_changed |= ui
+                .radio_value(&mut state.bitmap_dislpay, SelectedOption::RoomsDebug, "rooms debug")
                 .changed();
 
             ui_changed |= ui
@@ -382,6 +367,7 @@ fn ui_system(
                 .changed();
 
             if ui_changed {
+                state.save().unwrap();
                 event_writer.send(UiChangedEvent {
                     ui_state: state.clone(),
                 });
@@ -392,71 +378,74 @@ fn ui_system(
         .width();
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum SelectedOption {
-    Planet_raw,
-    Planet_processed,
-    Altitude,
-    Depth,
-    Debug,
-}
 
-#[derive(Resource, Debug, Clone)]
-pub struct UiState {
-    pub changed: bool,
-    pub noise: Vec<FractalNoiseOptions>,
-    pub mask_frequency: f64,
-    pub mask_z: f64,
-    pub global_amplitude: f32,
-    pub radius: f32,
-    pub resolution: u32,
-    pub ca_thresh: u32,
-    pub ca_iterations: u32,
-    pub ca_init_weight: f32,
-    pub ca_searh_radius: u32,
-    pub ca_misc: i32,
-    pub blur: f32,
-    pub selected_option: SelectedOption,
-    pub scale: f32,
-    pub show_texture: bool,
-    pub show_vectors: bool,
-    pub show_debug: bool,
-    pub crust_thickness: f32,
-    pub displacement_scale: f64,
-    pub displacement_frequency: f64,
-    pub invert_ca: bool,
-}
+// #[derive(Debug, Clone, PartialEq, Eq)]
+// pub enum SelectedOption {
+//     PlanetRaw,
+//     PlanetProcessed,
+//     Altitude,
+//     Depth,
+//     RoomsRaw,
+//     RoomsDebug,
+// }
 
-impl Default for UiState {
-    fn default() -> Self {
-        Self {
-            changed: false,
-            noise: vec![
-                FractalNoiseOptions::default(),
-                FractalNoiseOptions::default(),
-                FractalNoiseOptions::default(),
-            ],
+// #[derive(Resource, Debug, Clone)]
+// pub struct UiState {
+//     pub changed: bool,
+//     pub noise: Vec<FractalNoiseOptions>,
+//     pub mask_frequency: f64,
+//     pub mask_z: f64,
+//     pub global_amplitude: f32,
+//     pub radius: f32,
+//     pub resolution: u32,
+//     pub ca_thresh: u32,
+//     pub ca_iterations: u32,
+//     pub ca_init_weight: f32,
+//     pub ca_searh_radius: u32,
+//     pub ca_misc: i32,
+//     pub blur: f32,
+//     pub bitmap_dislpay: SelectedOption,
+//     pub scale: f32,
+//     pub show_texture: bool,
+//     pub show_vectors: bool,
+//     pub show_debug: bool,
+//     pub crust_thickness: f32,
+//     pub displacement_scale: f64,
+//     pub displacement_frequency: f64,
+//     pub invert_ca: bool,
+// }
 
-            global_amplitude: 1.0,
-            mask_frequency: 0.5,
-            mask_z: 0.0,
-            radius: 1.,
-            resolution: 200,
-            ca_thresh: 4,
-            ca_iterations: 1,
-            ca_init_weight: 0.62,
-            ca_misc: 0,
-            blur: 1.,
-            scale: 100.,
-            show_texture: true,
-            show_vectors: true,
-            show_debug: false,
-            crust_thickness: 0.0,
-            ca_searh_radius: 3,
-            selected_option: SelectedOption::Planet_raw,
-            displacement_scale: 0.0,
-            displacement_frequency: 0.0,
-            invert_ca: false,
-        }
-    }
-}
+// impl Default for UiState {
+//     fn default() -> Self {
+//         Self {
+//             changed: false,
+//             noise: vec![
+//                 FractalNoiseOptions::default(),
+//                 FractalNoiseOptions::default(),
+//                 FractalNoiseOptions::default(),
+//             ],
+
+//             global_amplitude: 1.0,
+//             mask_frequency: 0.5,
+//             mask_z: 0.0,
+//             radius: 1.,
+//             resolution: 200,
+//             ca_thresh: 4,
+//             ca_iterations: 1,
+//             ca_init_weight: 0.62,
+//             ca_misc: 0,
+//             blur: 1.,
+//             scale: 100.,
+//             show_texture: true,
+//             show_vectors: true,
+//             show_debug: false,
+//             crust_thickness: 0.0,
+//             ca_searh_radius: 3,
+//             bitmap_dislpay: SelectedOption::PlanetRaw,
+//             displacement_scale: 0.0,
+//             displacement_frequency: 0.0,
+//             invert_ca: false,
+//         }
+//     }
+// }
+

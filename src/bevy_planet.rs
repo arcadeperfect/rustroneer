@@ -6,14 +6,21 @@ use bevy::{
     },
     utils::tracing,
 };
+use rand::prelude::*;
 // use bevy_egui::egui::epaint::image;
 use bevy_rapier2d::prelude::*;
-use planet::{types::{FractalNoiseOptions, PlanetData}, PlanetBuilder, PlanetOptions};
+use planet::{
+    room::Room,
+    tile_map::{Tile, TileMap},
+    types::{FractalNoiseOptions, PlanetData},
+    PlanetBuilder, PlanetOptions,
+};
 
 use crate::{
+    constants::*,
     line::{LineList, LineMaterial},
-    // types::UiState,
-    ui::{SelectedOption, UiChangedEvent, UiState},
+    ui::UiChangedEvent,
+    ui_state::{SelectedOption, UiState},
 };
 
 use image::{ImageBuffer, Rgba};
@@ -83,9 +90,6 @@ pub struct TexturePlanetEntity {
 fn spawn_planet_root_system(mut commands: Commands, state: ResMut<UiState>) {
     let planet = None;
 
-
-    
-
     let scale = state.scale;
 
     commands
@@ -136,7 +140,6 @@ fn rebuild_planet_system(
 
     let ui_event = events.read();
     for event in ui_event {
-
         let state = event.ui_state.clone();
         let options = PlanetOptions::from(event.ui_state.clone());
 
@@ -149,8 +152,6 @@ fn rebuild_planet_system(
         //     persistence: state.noise1.persistence as f64
         // };
 
-        
-
         // if(state.noise.len() == 0){
         //     return;
         // }
@@ -161,12 +162,13 @@ fn rebuild_planet_system(
         //     &fractal_options_1
         // ];
 
-
         // let fractal_options = state.noise;
 
         // println!("fractal options: {:?}", state.noise.len());
 
-        let planet_data = builder_resource.builder.build(options, state.noise.iter().collect());
+        let planet_data = builder_resource
+            .builder
+            .build(options, state.noise.iter().collect());
         match planet_data {
             Ok(planet) => {
                 if let Ok((entity, mut bevy_planet)) = planet_query.get_single_mut() {
@@ -361,12 +363,12 @@ fn update_planet_texture(
         if let Some(planet) = bevy_planet.planet_data.as_ref() {
             if let Some(texture_plane_entity) = texture_planet_entity_resource.entity {
                 if let Ok(mut material_handle) = query.get_mut(texture_plane_entity) {
-                    let new_image = match state.selected_option {
-                        SelectedOption::Planet_raw => match &planet.planet_map.main {
+                    let new_image = match state.bitmap_dislpay {
+                        SelectedOption::PlanetRaw => match &planet.planet_map.main {
                             Some(main_map) => umap_to_bevy_image(main_map),
                             None => continue,
                         },
-                        SelectedOption::Planet_processed => match &planet.image {
+                        SelectedOption::PlanetProcessed => match &planet.image {
                             Some(image) => imagebuffer_to_bevy_image(image),
                             None => continue,
                         },
@@ -378,10 +380,22 @@ fn update_planet_texture(
                             Some(depth) => fmap_to_bevy_image(depth),
                             None => continue,
                         },
-                        SelectedOption::Debug => {
-                            // Handle the debug option if needed
-                            continue;
-                        }
+                        SelectedOption::RoomsRaw => match &planet.planet_map.rooms_raw {
+                            Some(rooms) => umap_to_bevy_image(rooms),
+                            None => continue,
+                        },
+                        // SelectedOption::RoomsDebug => match &planet.tile_map{
+                        //     // Some(rooms) => imagebuffer_to_bevy_image(rooms_debug),
+                        //     Some(t) => tile_map_to_bevy_image(t),
+                        //     None => continue,
+                        // }
+                        // _ => continue,
+                        SelectedOption::RoomsDebug => match &planet.rooms {
+                            // Some(rooms) => imagebuffer_to_bevy_image(rooms_debug),
+                            Some(t) => room_vec_to_bevy_image(t, planet.get_dimension().unwrap()),
+                            None => continue,
+                        },
+                        _ => continue,
                     };
 
                     let new_image_handle = images.add(new_image);
@@ -395,12 +409,12 @@ fn update_planet_texture(
                 }
             }
 
-            commands.entity(planet_entity).remove::<NeedsTextureUpdate>();
+            commands
+                .entity(planet_entity)
+                .remove::<NeedsTextureUpdate>();
         }
     }
 }
-
-
 
 // fn update_planet_texture(
 //     state: ResMut<UiState>,
@@ -493,6 +507,7 @@ fn umap_to_bevy_image(map: &Vec<Vec<u8>>) -> Image {
 
     let data: Vec<u8> = map
         .iter()
+        .rev()
         .flat_map(|row| {
             row.iter().flat_map(|&v| {
                 let v = (v * 100) as u8; // Convert u16 to u8, might need different conversion based on your data
@@ -533,4 +548,137 @@ fn fmap_to_bevy_image(map: &Vec<Vec<f32>>) -> Image {
     let asset_usage = RenderAssetUsages::RENDER_WORLD;
 
     Image::new(size, dimension, data, format, asset_usage)
+}
+
+fn room_vec_to_bevy_image(room_vec: &Vec<Room>, res: usize) -> Image {
+    let size = Extent3d {
+        width: res as u32,
+        height: res as u32,
+        depth_or_array_layers: 1,
+    };
+
+    let dimension = TextureDimension::D2;
+
+    let mut data: Vec<u8> = vec![0; res * res * 4];
+
+    for room in room_vec {
+        for tile in &room.tiles {
+            let x = tile.y as usize;
+            let y = res - tile.x as usize - 1;
+            let index = (y * res + x) * 4;
+            let c = random_room_color(room.id as u64);
+            data[index] = c[0]; // R
+            data[index + 1] = c[1]; // G
+            data[index + 2] = c[2]; // B
+            data[index + 3] = 255; // A (opacity)
+        }
+
+        for tile in &room.edge_tile_indexes {
+            let x = room.tiles[*tile].y as usize;
+            let y = res - room.tiles[*tile].x as usize - 1;
+
+            let index = (y * res + x) * 4;
+            let c = random_room_color_accent(room.id as u64);
+            // let c = WHITE;
+            data[index] = c[0]; // R
+            data[index + 1] = c[1]; // G
+            data[index + 2] = c[2]; // B
+            data[index + 3] = 255; // A (opacity)
+        }
+
+        let c_x = room.center.y;
+        let c_y = room.center.x;
+
+        let inverted = res - c_y - 1;
+
+        println!("{} {} {}", res, c_y, inverted);
+
+        let index = (inverted * res + c_x) * 4;
+        // let c_c = random_room_center_color(room.id as u64);
+        let c_c = GREEN;
+        data[index] = c_c[0]; // R
+        data[index + 1] = c_c[1]; // G
+        data[index + 2] = c_c[2]; // B
+        data[index + 3] = 255; // A (opacity)
+    }
+
+    let format = TextureFormat::Rgba8UnormSrgb;
+    let asset_usage = RenderAssetUsages::RENDER_WORLD;
+
+    Image::new(size, dimension, data, format, asset_usage)
+}
+
+fn tile_map_to_bevy_image(map: &TileMap) -> Image {
+    let width = map[0].len() as u32; // Assuming all rows have the same length
+    let height = map.len() as u32;
+
+    let size = Extent3d {
+        width,
+        height,
+        depth_or_array_layers: 1,
+    };
+
+    let dimension = TextureDimension::D2;
+
+    let data: Vec<u8> = map
+        .iter()
+        .rev()
+        .flat_map(|row| {
+            row.iter().flat_map(|&tile| {
+                match tile {
+                    Tile::Space => BLACK,
+                    Tile::Wall => WHITE, // White for wall
+                    Tile::Room(id) => random_room_color((id).unwrap() as u64),
+                    // Tile::RoomCenter(id) => random_room_center_color((id) as u64),
+                    Tile::RoomCenter(id) => BLACK,
+                    _ => GREEN, // Add more cases as needed
+                }
+            })
+        })
+        .collect();
+
+    let format = TextureFormat::Rgba8UnormSrgb;
+    let asset_usage = RenderAssetUsages::RENDER_WORLD;
+
+    Image::new(size, dimension, data, format, asset_usage)
+}
+
+fn random_room_color(id: u64) -> [u8; 4] {
+    let mut rng = StdRng::seed_from_u64(id);
+    let random_float: f32 = rng.gen();
+
+    let clr = Color::Lcha {
+        lightness: 0.5,
+        chroma: 0.5,
+        hue: random_float * 360.0,
+        alpha: 1.0,
+    };
+
+    let [r, g, b, a] = clr.as_rgba_f32();
+    [
+        (r * 255.0) as u8,
+        (g * 255.0) as u8,
+        (b * 255.0) as u8,
+        (a * 255.0) as u8,
+    ]
+}
+
+fn random_room_color_accent(id: u64) -> [u8; 4] {
+    let mut rng = StdRng::seed_from_u64(id);
+    let random_float: f32 = rng.gen();
+
+    let clr = Color::Lcha {
+        lightness: 0.8,
+        chroma: 0.8,
+        hue: random_float * 360.0,
+        alpha: 1.0,
+    };
+
+    let [r, g, b, a] = clr.as_rgba_f32();
+    [
+        (r * 255.0) as u8,
+        (g * 255.0) as u8,
+        (b * 255.0) as u8,
+        (a * 255.0) as u8,
+    ]
 }

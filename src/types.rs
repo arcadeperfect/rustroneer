@@ -1,7 +1,9 @@
 use bevy::ecs::system::Resource;
 use planet::{types::Coord, PlanetOptions};
 
-use crate::ui::UiState;
+use crate::ui_state::UiState;
+
+
 
 impl From<UiState> for PlanetOptions {
     fn from(ui_state: UiState) -> Self {

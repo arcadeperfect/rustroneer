@@ -22,3 +22,5 @@ imported_assets
 
 example_showcase_config.ron
 trace*.json
+
+.env

@@ -1,14 +1,9 @@
-use std::time::Duration;
-
-use bevy::{prelude::*, window::WindowMode};
-
+use bevy::{log::tracing_subscriber::{self, EnvFilter}, prelude::*, window::WindowMode};
 use bevy_rapier2d::prelude::*;
 use camera::MyCameraPlugin;
 use physics::PhysicsPlugin;
-
 use player::MyPlayerPlugin;
 use ui::PlanetUiPlugin;
-
 use bevy_tweening::*;
 
 mod bevy_planet;
@@ -19,11 +14,26 @@ mod player;
 mod traits;
 mod types;
 mod ui;
+mod constants;
+mod ui_state;
 
 #[derive(Component)]
 pub struct PlayerTag;
 
 fn main() {
+
+    // dotenv::dotenv().ok();
+
+    match dotenv::dotenv() {
+        Ok(_) => {println!("loaded env")}
+        Err(e) => {println!("error loading env: {}", e)}    
+    }
+
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
+
+
     App::new()
         .add_plugins(
             DefaultPlugins
