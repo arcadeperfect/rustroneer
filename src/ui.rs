@@ -343,6 +343,10 @@ fn ui_system(
                 .radio_value(&mut state.bitmap_dislpay, SelectedOption::RoomsDebug, "rooms debug")
                 .changed();
 
+                ui_changed |= ui
+                .radio_value(&mut state.bitmap_dislpay, SelectedOption::TileMapDebug, "tile map debug")
+                .changed();
+
             ui_changed |= ui
                 .checkbox(&mut state.show_texture, "Show texture")
                 .changed();

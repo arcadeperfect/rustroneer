@@ -15,6 +15,7 @@ pub enum SelectedOption {
     Depth,
     RoomsRaw,
     RoomsDebug,
+    TileMapDebug
 }
 
 #[derive(Resource, Debug, Clone, Serialize, Deserialize)]
