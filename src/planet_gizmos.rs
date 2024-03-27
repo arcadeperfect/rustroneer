@@ -36,27 +36,13 @@ fn draw_gizmos(
                     }
                 }
 
-                let mst = planet_data.get_mst();
+                if let Some(mst) = planet_data.mst.as_ref(){
 
                 for edge in mst{
                     let a = edge.0.into_world_normalized_vec2(&d) * s;
                     let b = edge.1.into_world_normalized_vec2(&d) * s;
                     gizmos.line_2d(a, b, Color::ORANGE);
-                }
-
-
-
-                // if let Some(c) = planet_data.get_mst_coords() {
-                //     if let Some(double) = doubler(c) {
-                //         for edge in double {
-                //             gizmos.line_2d(
-                //                 edge.0.into_world_normalized_vec2(&d) * s,
-                //                 edge.1.into_world_normalized_vec2(&d) * s,
-                //                 Color::ORANGE,
-                //             )
-                //         }
-                //     }
-                // }
+                }}
             }
         }
 
