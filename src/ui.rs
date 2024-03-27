@@ -5,18 +5,18 @@ use bevy::{
         system::{ResMut, Resource},
     },
 };
-use bevy_egui::{egui::{self}, EguiContexts};
+use bevy_egui::{
+    egui::{self},
+    EguiContexts,
+};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 
-
 use crate::ui_state::{SelectedOption, UiState};
-
 
 pub struct PlanetUiPlugin;
 
 impl Plugin for PlanetUiPlugin {
     fn build(&self, app: &mut App) {
-
         let ui_state: UiState = UiState::load().unwrap_or_default();
 
         app.add_plugins(WorldInspectorPlugin::new())
@@ -55,7 +55,6 @@ fn ui_system(
     mut event_writer: EventWriter<UiChangedEvent>,
     mut occupied_screen_space: ResMut<OccupiedScreenSpace>,
 ) {
-
     let mut ui_changed = false;
 
     let smaller_space = 10.;
@@ -76,7 +75,7 @@ fn ui_system(
             );
             ui.add_space(larger_space);
 
-            let mut noise_parameters_open = true;
+            let mut _noise_parameters_open = true;
             ui.collapsing("Noise 1 Parameters", |ui| {
                 ui_changed |= ui
                     .add(
@@ -336,15 +335,27 @@ fn ui_system(
                 .changed();
 
             ui_changed |= ui
-                .radio_value(&mut state.bitmap_dislpay, SelectedOption::RoomsRaw, "rooms raw")
+                .radio_value(
+                    &mut state.bitmap_dislpay,
+                    SelectedOption::RoomsRaw,
+                    "rooms raw",
+                )
                 .changed();
 
             ui_changed |= ui
-                .radio_value(&mut state.bitmap_dislpay, SelectedOption::RoomsDebug, "rooms debug")
+                .radio_value(
+                    &mut state.bitmap_dislpay,
+                    SelectedOption::RoomsDebug,
+                    "rooms debug",
+                )
                 .changed();
 
-                ui_changed |= ui
-                .radio_value(&mut state.bitmap_dislpay, SelectedOption::TileMapDebug, "tile map debug")
+            ui_changed |= ui
+                .radio_value(
+                    &mut state.bitmap_dislpay,
+                    SelectedOption::TileMapDebug,
+                    "tile map debug",
+                )
                 .changed();
 
             ui_changed |= ui
@@ -370,6 +381,13 @@ fn ui_system(
                 .add(egui::Slider::new(&mut state.scale, 5.0..=100.).text("scale"))
                 .changed();
 
+            ui.add_space(larger_space);
+
+
+            ui_changed |= ui
+                .checkbox(&mut state.gizmo_options.draw_gizmos, "Draw Gizmos")
+                .changed();
+
             if ui_changed {
                 state.save().unwrap();
                 event_writer.send(UiChangedEvent {
@@ -381,75 +399,3 @@ fn ui_system(
         .rect
         .width();
 }
-
-
-// #[derive(Debug, Clone, PartialEq, Eq)]
-// pub enum SelectedOption {
-//     PlanetRaw,
-//     PlanetProcessed,
-//     Altitude,
-//     Depth,
-//     RoomsRaw,
-//     RoomsDebug,
-// }
-
-// #[derive(Resource, Debug, Clone)]
-// pub struct UiState {
-//     pub changed: bool,
-//     pub noise: Vec<FractalNoiseOptions>,
-//     pub mask_frequency: f64,
-//     pub mask_z: f64,
-//     pub global_amplitude: f32,
-//     pub radius: f32,
-//     pub resolution: u32,
-//     pub ca_thresh: u32,
-//     pub ca_iterations: u32,
-//     pub ca_init_weight: f32,
-//     pub ca_searh_radius: u32,
-//     pub ca_misc: i32,
-//     pub blur: f32,
-//     pub bitmap_dislpay: SelectedOption,
-//     pub scale: f32,
-//     pub show_texture: bool,
-//     pub show_vectors: bool,
-//     pub show_debug: bool,
-//     pub crust_thickness: f32,
-//     pub displacement_scale: f64,
-//     pub displacement_frequency: f64,
-//     pub invert_ca: bool,
-// }
-
-// impl Default for UiState {
-//     fn default() -> Self {
-//         Self {
-//             changed: false,
-//             noise: vec![
-//                 FractalNoiseOptions::default(),
-//                 FractalNoiseOptions::default(),
-//                 FractalNoiseOptions::default(),
-//             ],
-
-//             global_amplitude: 1.0,
-//             mask_frequency: 0.5,
-//             mask_z: 0.0,
-//             radius: 1.,
-//             resolution: 200,
-//             ca_thresh: 4,
-//             ca_iterations: 1,
-//             ca_init_weight: 0.62,
-//             ca_misc: 0,
-//             blur: 1.,
-//             scale: 100.,
-//             show_texture: true,
-//             show_vectors: true,
-//             show_debug: false,
-//             crust_thickness: 0.0,
-//             ca_searh_radius: 3,
-//             bitmap_dislpay: SelectedOption::PlanetRaw,
-//             displacement_scale: 0.0,
-//             displacement_frequency: 0.0,
-//             invert_ca: false,
-//         }
-//     }
-// }
-

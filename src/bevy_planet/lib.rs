@@ -1,21 +1,13 @@
-use bevy::{
-    prelude::*,
-    utils::tracing,
-};
-use rand::prelude::*;
+use bevy::{prelude::*, utils::tracing};
 use bevy_rapier2d::prelude::*;
-use planet::{
-    types::PlanetData,
-    PlanetBuilder, PlanetOptions,
-};
+use planet::{types::PlanetData, PlanetBuilder, PlanetOptions};
+
 
 use crate::{
     line::{LineList, LineMaterial},
     ui::UiChangedEvent,
     ui_state::{SelectedOption, UiState},
 };
-
-
 
 pub struct PlanetPlugin;
 
@@ -187,10 +179,6 @@ fn spawn_planet_mesh_system(
                 .insert(PlanetMeshTag)
                 .id();
 
-            // for (planet_root, _) in planet_root_query.iter_mut() {
-
-            // }
-
             if let Ok((entity, _)) = planet_root_query.get_single_mut() {
                 commands.entity(entity).push_children(&[mesh_child]);
                 commands.entity(entity).remove::<NeedsMeshUpdate>();
@@ -252,7 +240,7 @@ fn spawn_planet_map_visualiser_system(
     mut texture_plane_entity_resource: ResMut<TexturePlaneEntityResource>,
     mut planet_root_query: Query<(Entity, &mut PlanetRootTag)>,
 ) {
-    let scale = state.scale;
+    let _scale = state.scale;
 
     for (planet_entity, bevy_planet) in planet_query.iter() {
         if let Some(planet) = bevy_planet.planet_data.as_ref() {
@@ -310,63 +298,65 @@ fn update_planet_texture(
     mut vis_query: Query<&mut Visibility, With<TexturePlanetRootTag>>,
 ) {
     for (planet_entity, bevy_planet, _) in planet_query.iter() {
-        let mut vis = vis_query.single_mut();
-
-        match state.show_texture {
-            true => *vis = Visibility::Visible,
-            false => *vis = Visibility::Hidden,
-        }
-
-        if let Some(planet) = bevy_planet.planet_data.as_ref() {
-            if let Some(texture_plane_entity) = texture_planet_entity_resource.entity {
-                if let Ok(mut material_handle) = query.get_mut(texture_plane_entity) {
-                    let new_image = match state.bitmap_dislpay {
-                        SelectedOption::PlanetRaw => match &planet.planet_map.main {
-                            Some(main_map) => umap_to_bevy_image(main_map),
-                            None => continue,
-                        },
-                        SelectedOption::PlanetProcessed => match &planet.image {
-                            Some(image) => imagebuffer_to_bevy_image(image),
-                            None => continue,
-                        },
-                        SelectedOption::Altitude => match &planet.planet_map.altitude {
-                            Some(altitude) => fmap_to_bevy_image(altitude),
-                            None => continue,
-                        },
-                        SelectedOption::Depth => match &planet.planet_map.depth {
-                            Some(depth) => fmap_to_bevy_image(depth),
-                            None => continue,
-                        },
-                        SelectedOption::RoomsRaw => match &planet.planet_map.rooms_raw {
-                            Some(rooms) => umap_to_bevy_image(rooms),
-                            None => continue,
-                        },
-                        SelectedOption::RoomsDebug => match &planet.rooms {
-                            // Some(rooms) => imagebuffer_to_bevy_image(rooms_debug),
-                            Some(t) => room_vec_to_bevy_image(t, planet.get_dimension().unwrap()),
-                            None => continue,
-                        },
-                        SelectedOption::TileMapDebug => match &planet.tile_map {
-                            // Some(rooms) => imagebuffer_to_bevy_image(rooms_debug),
-                            Some(t) => tile_map_to_bevy_image(t),
-                            None => continue,
-                        },  
-                    };
-
-                    let new_image_handle = images.add(new_image);
-                    let new_material = StandardMaterial {
-                        base_color_texture: Some(new_image_handle),
-                        unlit: true,
-                        ..default()
-                    };
-
-                    *material_handle = materials.add(new_material);
-                }
+        if let Ok(mut vis) = vis_query.get_single_mut() {
+            match state.show_texture {
+                true => *vis = Visibility::Visible,
+                false => *vis = Visibility::Hidden,
             }
 
-            commands
-                .entity(planet_entity)
-                .remove::<NeedsTextureUpdate>();
+            if let Some(planet) = bevy_planet.planet_data.as_ref() {
+                if let Some(texture_plane_entity) = texture_planet_entity_resource.entity {
+                    if let Ok(mut material_handle) = query.get_mut(texture_plane_entity) {
+                        let new_image = match state.bitmap_dislpay {
+                            SelectedOption::PlanetRaw => match &planet.planet_map.main {
+                                Some(main_map) => umap_to_bevy_image(main_map),
+                                None => continue,
+                            },
+                            SelectedOption::PlanetProcessed => match &planet.image {
+                                Some(image) => imagebuffer_to_bevy_image(image),
+                                None => continue,
+                            },
+                            SelectedOption::Altitude => match &planet.planet_map.altitude {
+                                Some(altitude) => fmap_to_bevy_image(altitude),
+                                None => continue,
+                            },
+                            SelectedOption::Depth => match &planet.planet_map.depth {
+                                Some(depth) => fmap_to_bevy_image(depth),
+                                None => continue,
+                            },
+                            SelectedOption::RoomsRaw => match &planet.planet_map.rooms_raw {
+                                Some(rooms) => umap_to_bevy_image(rooms),
+                                None => continue,
+                            },
+                            SelectedOption::RoomsDebug => match &planet.rooms {
+                                // Some(rooms) => imagebuffer_to_bevy_image(rooms_debug),
+                                Some(t) => {
+                                    room_vec_to_bevy_image(t, planet.get_dimension().unwrap())
+                                }
+                                None => continue,
+                            },
+                            SelectedOption::TileMapDebug => match &planet.tile_map {
+                                // Some(rooms) => imagebuffer_to_bevy_image(rooms_debug),
+                                Some(t) => tile_map_to_bevy_image(t),
+                                None => continue,
+                            },
+                        };
+
+                        let new_image_handle = images.add(new_image);
+                        let new_material = StandardMaterial {
+                            base_color_texture: Some(new_image_handle),
+                            unlit: true,
+                            ..default()
+                        };
+
+                        *material_handle = materials.add(new_material);
+                    }
+                }
+
+                commands
+                    .entity(planet_entity)
+                    .remove::<NeedsTextureUpdate>();
+            }
         }
     }
 }

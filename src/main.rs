@@ -1,10 +1,15 @@
-use bevy::{log::tracing_subscriber::{self, EnvFilter}, prelude::*, window::WindowMode};
+use bevy::{
+    log::tracing_subscriber::{self, EnvFilter},
+    prelude::*,
+    window::WindowMode,
+};
 use bevy_rapier2d::prelude::*;
+use bevy_tweening::*;
 use camera::MyCameraPlugin;
 use physics::PhysicsPlugin;
 use player::MyPlayerPlugin;
 use ui::PlanetUiPlugin;
-use bevy_tweening::*;
+use planet_gizmos::PlanetGizmosPlugin;
 
 mod bevy_planet;
 mod camera;
@@ -14,23 +19,25 @@ mod player;
 mod traits;
 mod types;
 mod ui;
-mod constants;
 mod ui_state;
+mod planet_gizmos;
 
 #[derive(Component)]
 pub struct PlayerTag;
 
 fn main() {
-
     match dotenv::dotenv() {
-        Ok(_) => {println!("loaded env")}
-        Err(e) => {println!("error loading env: {}", e)}    
+        Ok(_) => {
+            println!("loaded env")
+        }
+        Err(e) => {
+            println!("error loading env: {}", e)
+        }
     }
 
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .init();
-
 
     App::new()
         .add_plugins(
@@ -54,6 +61,7 @@ fn main() {
             MyCameraPlugin,
         ))
         .add_plugins(TweeningPlugin)
+        .add_plugins(PlanetGizmosPlugin)
         .insert_resource(ClearColor(Color::rgb(0., 0., 0.)))
         .run();
 }

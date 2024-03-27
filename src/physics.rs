@@ -7,21 +7,6 @@ use crate::traits::IntoVec2;
 use crate::ui::UiChangedEvent;
 
 pub struct PhysicsPlugin;
-
-// impl Plugin for PhysicsPlugin{
-//     fn build(&self, app: &mut App) {
-//         app.add_systems(Startup, setup_physics)
-//         .add_systems(Update, apply_gravity)
-//         .add_plugins(RapierDebugRenderPlugin {
-//             style: DebugRenderStyle {
-//                 rigid_body_axes_length: 0.5,
-//                 ..Default::default()
-//             },
-//             ..Default::default()
-//         })
-//         ;
-//     }
-// }
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_physics)

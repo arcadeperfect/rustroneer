@@ -1,11 +1,13 @@
-use std::fs;
 use std::env;
+use std::fs;
 
+use anyhow::Result;
 use bevy::ecs::system::Resource;
 use planet::types::FractalNoiseOptions;
 use serde::{Deserialize, Serialize};
-use anyhow::Result;
 use serde_yaml;
+
+use crate::planet_gizmos::GizmoOptions;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SelectedOption {
@@ -15,7 +17,7 @@ pub enum SelectedOption {
     Depth,
     RoomsRaw,
     RoomsDebug,
-    TileMapDebug
+    TileMapDebug,
 }
 
 #[derive(Resource, Debug, Clone, Serialize, Deserialize)]
@@ -42,6 +44,7 @@ pub struct UiState {
     pub displacement_scale: f64,
     pub displacement_frequency: f64,
     pub invert_ca: bool,
+    pub gizmo_options: GizmoOptions,
 }
 
 impl Default for UiState {
@@ -74,6 +77,7 @@ impl Default for UiState {
             displacement_scale: 0.0,
             displacement_frequency: 0.0,
             invert_ca: false,
+            gizmo_options: GizmoOptions::default(),
         }
     }
 }
@@ -97,19 +101,9 @@ impl UiState {
         Ok(())
     }
 
-    // pub fn load(&self) -> Option<UiState> {
-    //     let file_path = "/save/";
-    //     let contents = fs::read_to_string(file_path).ok()?;
-    
-    //     let v = serde_yaml::from_str(&contents).ok()?;
-    //     Some(v)
-    // }
-
-    pub fn load() -> Result<UiState>{
-
+    pub fn load() -> Result<UiState> {
         let file_path = env::current_dir()?.join("save/save.yaml");
-       
-       
+
         let contents = fs::read_to_string(file_path)?;
 
         let v = serde_yaml::from_str(&contents)?;

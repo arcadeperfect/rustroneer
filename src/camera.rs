@@ -1,10 +1,8 @@
-use std::time::Duration;
 
 use bevy::{prelude::*, render::camera::Viewport, window::PrimaryWindow};
-
 use crate::ui::OccupiedScreenSpace;
-use bevy_tweening::lens::TransformPositionLens;
-use bevy_tweening::*;
+
+
 
 pub struct MyCameraPlugin;
 
