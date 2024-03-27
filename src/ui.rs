@@ -383,7 +383,6 @@ fn ui_system(
 
             ui.add_space(larger_space);
 
-
             ui_changed |= ui
                 .checkbox(&mut state.gizmo_options.draw_gizmos, "Draw Gizmos")
                 .changed();

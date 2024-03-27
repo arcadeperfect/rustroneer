@@ -1,6 +1,6 @@
 use bevy::{prelude::*, utils::tracing};
 use bevy_rapier2d::prelude::*;
-use planet::{types::PlanetData, PlanetBuilder, PlanetOptions};
+use planet::{planet_data::PlanetData, PlanetBuilder, PlanetOptions};
 
 
 use crate::{
