@@ -1,11 +1,5 @@
 use bevy::prelude::*;
-use bevy_rapier2d::parry::utils::center;
-use planet::{
-    room::Room,
-    roooms,
-    triangulation::{self, find_mst_indexes},
-    types::Coord,
-};
+
 use serde::{Deserialize, Serialize};
 
 use crate::{bevy_planet::lib::BevyPlanet, ui_state::UiState};
@@ -29,26 +23,34 @@ fn draw_gizmos(
 
     for bevy_planet in planet_query.iter() {
         if let Some(planet_data) = &bevy_planet.planet_data {
-            if let Some(dimension) = planet_data.get_dimension() {
+            let dimension = planet_data.get_dimension(); 
                 let d = dimension as u32;
                 let s = ui_state.scale;
 
                 if let Some(roooms) = &planet_data.roooms {
                     roooms.rooms.iter().for_each(|r| {
                         let c = r.center.into_world_normalized_vec2(&d) * s;
-                        gizmos.circle_2d(c, 1., Color::RED);
-                    })
-                }
+                        // gizmos.circle_2d(c, 1., Color::RED);
+                    });
 
-                if let Some(roooms) = &planet_data.roooms {
+                    if let Some(tr) = roooms.get_triangulation_coords(){
+                        tr.iter().for_each(|t|{
+                            // gizmos.line_2d(
+                            //     t.0.into_world_normalized_vec2(&d) * s, 
+                            //     t.1.into_world_normalized_vec2(&d) * s, 
+                            //    Color::RED
+                            // )
+                        })
+                    }
+
                     if let Some(mst) = &roooms.mst {
                         for i in mst {
                             let a = roooms.rooms[i.0].center.into_world_normalized_vec2(&d) * s;
                             let b = roooms.rooms[i.1].center.into_world_normalized_vec2(&d) * s;
-                            gizmos.line_2d(a, b, Color::PINK);
+                            // gizmos.line_2d(a, b, Color::PINK);
                         }
                     }
-                }
+                
             }
         }
     }

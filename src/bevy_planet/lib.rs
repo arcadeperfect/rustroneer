@@ -6,7 +6,7 @@ use planet::{planet_data::PlanetData, PlanetBuilder, PlanetOptions};
 use crate::{
     line::{LineList, LineMaterial},
     ui::UiChangedEvent,
-    ui_state::{SelectedOption, UiState},
+    ui_state::{BitmapDisplay, UiState},
 };
 
 pub struct PlanetPlugin;
@@ -198,7 +198,7 @@ fn spawn_planet_colliders_system(
                 commands.entity(entity).despawn();
             }
 
-            let colliders = get_colliders(&planet.poly_lines);
+            let colliders = get_colliders(&planet.polylines);
 
             let mut childs = Vec::new();
 
@@ -244,7 +244,8 @@ fn spawn_planet_map_visualiser_system(
 
     for (planet_entity, bevy_planet) in planet_query.iter() {
         if let Some(planet) = bevy_planet.planet_data.as_ref() {
-            if let Some(main_map) = &planet.planet_map.main {
+            let main_map = &planet.planet_map.main; 
+            
                 let texture_planet_material: Handle<StandardMaterial> =
                     materials.add(StandardMaterial {
                         base_color_texture: Some(images.add(umap_to_bevy_image(&main_map))),
@@ -278,7 +279,7 @@ fn spawn_planet_map_visualiser_system(
                         .entity(entity)
                         .push_children(&[texture_plane_entity]);
                 }
-            }
+            
 
             commands
                 .entity(planet_entity)
@@ -308,29 +309,45 @@ fn update_planet_texture(
                 if let Some(texture_plane_entity) = texture_planet_entity_resource.entity {
                     if let Ok(mut material_handle) = query.get_mut(texture_plane_entity) {
                         let new_image = match state.bitmap_dislpay {
-                            SelectedOption::PlanetRaw => match &planet.planet_map.main {
-                                Some(main_map) => umap_to_bevy_image(main_map),
+                            BitmapDisplay::PlanetRaw => umap_to_bevy_image(&planet.planet_map.main),
+                            
+                            // match &planet.planet_map.main {
+                            //     Some(main_map) => umap_to_bevy_image(main_map),
+                            //     None => continue,
+                            // },
+
+                            BitmapDisplay::PlanetProcessed => imagebuffer_to_bevy_image(&planet.image),
+
+                            // BitmapDisplay::PlanetProcessed => match &planet.image {
+                            //     Some(image) => imagebuffer_to_bevy_image(image),
+                            //     None => continue,
+                            // },
+
+                            BitmapDisplay::Altitude => fmap_to_bevy_image(&planet.planet_map.altitude ),
+
+
+                            // BitmapDisplay::Altitude => match &planet.planet_map.altitude {
+                            //     Some(v) => fmap_to_bevy_image(v),
+                            //     None => continue,
+                            // },
+
+                            BitmapDisplay::Depth => fmap_to_bevy_image(&planet.planet_map.depth ),
+
+                            // BitmapDisplay::Depth => match &planet.planet_map.depth {
+                            //     Some(v) => fmap_to_bevy_image(v),
+                            //     None => continue,
+                            // },
+                            BitmapDisplay::Mask => match &planet.planet_map.mask {
+                                Some(v) => fmap_to_bevy_image(v),
                                 None => continue,
                             },
-                            SelectedOption::PlanetProcessed => match &planet.image {
-                                Some(image) => imagebuffer_to_bevy_image(image),
+                            BitmapDisplay::RoomsRaw => match &planet.planet_map.rooms_raw {
+                                Some(v) => umap_to_bevy_image(v),
                                 None => continue,
                             },
-                            SelectedOption::Altitude => match &planet.planet_map.altitude {
-                                Some(altitude) => fmap_to_bevy_image(altitude),
-                                None => continue,
-                            },
-                            SelectedOption::Depth => match &planet.planet_map.depth {
-                                Some(depth) => fmap_to_bevy_image(depth),
-                                None => continue,
-                            },
-                            SelectedOption::RoomsRaw => match &planet.planet_map.rooms_raw {
-                                Some(rooms) => umap_to_bevy_image(rooms),
-                                None => continue,
-                            },
-                            SelectedOption::RoomsDebug => match &planet.roooms {
+                            BitmapDisplay::RoomsDebug => match &planet.roooms {
                                 // Some(rooms) => imagebuffer_to_bevy_image(rooms_debug),
-                                Some(t) => {
+                                Some(_t) => {
                                     continue;
                                     // if let Some(rooms) = t.rooms{
                                     //     room_vec_to_bevy_image(rooms, planet.get_dimension().unwrap())    
@@ -341,11 +358,14 @@ fn update_planet_texture(
                                 }
                                 None => continue,
                             },
-                            SelectedOption::TileMapDebug => match &planet.tile_map {
-                                // Some(rooms) => imagebuffer_to_bevy_image(rooms_debug),
-                                Some(t) => tile_map_to_bevy_image(t),
-                                None => continue,
-                            },
+
+                            BitmapDisplay::TileMapDebug => tile_map_to_bevy_image(&planet.tile_map),
+
+                            // BitmapDisplay::TileMapDebug => match &planet.tile_map {
+                            //     // Some(rooms) => imagebuffer_to_bevy_image(rooms_debug),
+                            //     Some(t) => tile_map_to_bevy_image(t),
+                            //     None => continue,
+                            // },
                         };
 
                         let new_image_handle = images.add(new_image);

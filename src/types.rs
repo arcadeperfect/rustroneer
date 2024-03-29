@@ -23,6 +23,7 @@ impl From<UiState> for PlanetOptions {
             global_amplitude: ui_state.global_amplitude,
             displacement_scale: ui_state.displacement_scale,
             displacement_frequency: ui_state.displacement_frequency,
+            rooms: ui_state.rooms
         }
     }
 }

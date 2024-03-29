@@ -6,15 +6,17 @@ use bevy::ecs::system::Resource;
 use planet::types::FractalNoiseOptions;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
+use strum_macros::EnumIter;
 
 use crate::planet_gizmos::GizmoOptions;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub enum SelectedOption {
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
+pub enum BitmapDisplay {
     PlanetRaw,
     PlanetProcessed,
     Altitude,
     Depth,
+    Mask,
     RoomsRaw,
     RoomsDebug,
     TileMapDebug,
@@ -35,7 +37,7 @@ pub struct UiState {
     pub ca_searh_radius: u32,
     pub ca_misc: i32,
     pub blur: f32,
-    pub bitmap_dislpay: SelectedOption,
+    pub bitmap_dislpay: BitmapDisplay,
     pub scale: f32,
     pub show_texture: bool,
     pub show_vectors: bool,
@@ -45,6 +47,7 @@ pub struct UiState {
     pub displacement_frequency: f64,
     pub invert_ca: bool,
     pub gizmo_options: GizmoOptions,
+    pub rooms: bool
 }
 
 impl Default for UiState {
@@ -73,29 +76,23 @@ impl Default for UiState {
             show_debug: false,
             crust_thickness: 0.0,
             ca_searh_radius: 3,
-            bitmap_dislpay: SelectedOption::PlanetRaw,
+            bitmap_dislpay: BitmapDisplay::PlanetRaw,
             displacement_scale: 0.0,
             displacement_frequency: 0.0,
             invert_ca: false,
             gizmo_options: GizmoOptions::default(),
+            rooms: false
         }
     }
 }
 
 impl UiState {
     pub fn save(&self) -> Result<()> {
-        // Serialize the UiState to a YAML string
         let yaml = serde_yaml::to_string(self)?;
-
-        // Get the current directory and append "/save/save.yaml" to it
         let file_path = env::current_dir()?.join("save/save.yaml");
-
-        // Create the directory if it doesn't exist
         if let Some(parent) = file_path.parent() {
             fs::create_dir_all(parent)?;
         }
-
-        // Write the YAML string to a file
         fs::write(file_path, yaml)?;
 
         Ok(())
@@ -103,9 +100,7 @@ impl UiState {
 
     pub fn load() -> Result<UiState> {
         let file_path = env::current_dir()?.join("save/save.yaml");
-
         let contents = fs::read_to_string(file_path)?;
-
         let v = serde_yaml::from_str(&contents)?;
         Ok(v)
     }

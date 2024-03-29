@@ -10,8 +10,9 @@ use bevy_egui::{
     EguiContexts,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use strum::{IntoEnumIterator}; // Import necessary traits
 
-use crate::ui_state::{SelectedOption, UiState};
+use crate::ui_state::{BitmapDisplay, UiState};
 
 pub struct PlanetUiPlugin;
 
@@ -112,6 +113,7 @@ fn ui_system(
                     )
                     .changed();
             });
+            
             ui.collapsing("Noise 2 Parameters", |ui| {
                 ui_changed |= ui
                     .add(
@@ -306,57 +308,14 @@ fn ui_system(
             );
             ui.add_space(larger_space);
 
-            ui_changed |= ui
-                .radio_value(
-                    &mut state.bitmap_dislpay,
-                    SelectedOption::PlanetRaw,
-                    "planet raw",
-                )
-                .changed();
 
-            ui_changed |= ui
-                .radio_value(
-                    &mut state.bitmap_dislpay,
-                    SelectedOption::PlanetProcessed,
-                    "planet processed",
-                )
-                .changed();
+            for variant in BitmapDisplay::iter() {
+                ui_changed |= ui
+                    .radio_value(&mut state.bitmap_dislpay, variant.clone(), format!("{:?}", variant))
+                    .changed();
+            }
 
-            ui_changed |= ui
-                .radio_value(
-                    &mut state.bitmap_dislpay,
-                    SelectedOption::Altitude,
-                    "altitude",
-                )
-                .changed();
-
-            ui_changed |= ui
-                .radio_value(&mut state.bitmap_dislpay, SelectedOption::Depth, "depth")
-                .changed();
-
-            ui_changed |= ui
-                .radio_value(
-                    &mut state.bitmap_dislpay,
-                    SelectedOption::RoomsRaw,
-                    "rooms raw",
-                )
-                .changed();
-
-            ui_changed |= ui
-                .radio_value(
-                    &mut state.bitmap_dislpay,
-                    SelectedOption::RoomsDebug,
-                    "rooms debug",
-                )
-                .changed();
-
-            ui_changed |= ui
-                .radio_value(
-                    &mut state.bitmap_dislpay,
-                    SelectedOption::TileMapDebug,
-                    "tile map debug",
-                )
-                .changed();
+            ui.add_space(smaller_space);
 
             ui_changed |= ui
                 .checkbox(&mut state.show_texture, "Show texture")
@@ -385,6 +344,10 @@ fn ui_system(
 
             ui_changed |= ui
                 .checkbox(&mut state.gizmo_options.draw_gizmos, "Draw Gizmos")
+                .changed();
+
+                ui_changed |= ui
+                .checkbox(&mut state.rooms, "Rooms")
                 .changed();
 
             if ui_changed {

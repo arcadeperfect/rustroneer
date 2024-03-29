@@ -22,6 +22,7 @@ pub const BLUE: [u8; 4] = [0, 0, 255, 255];
 pub const ORANGE: [u8; 4] = [255, 165, 0, 255];
 
 pub fn imagebuffer_to_bevy_image(buffer: &ImageBuffer<Rgba<u8>, Vec<u8>>) -> Image {
+    println!("imagebuffer_to_bevy_image");
     let width = buffer.width();
     let height = buffer.height();
 
@@ -40,6 +41,7 @@ pub fn imagebuffer_to_bevy_image(buffer: &ImageBuffer<Rgba<u8>, Vec<u8>>) -> Ima
 }
 
 pub fn umap_to_bevy_image(map: &Vec<Vec<u8>>) -> Image {
+    println!("umap_to_bevy_image");
     let width = map.len() as u32;
     let height = map[0].len() as u32;
 
@@ -68,6 +70,7 @@ pub fn umap_to_bevy_image(map: &Vec<Vec<u8>>) -> Image {
 }
 
 pub fn fmap_to_bevy_image(map: &Vec<Vec<f32>>) -> Image {
+    println!("fmap_to_bevy_image");
     let width = map.len() as u32;
     let height = map[0].len() as u32;
 
@@ -79,15 +82,13 @@ pub fn fmap_to_bevy_image(map: &Vec<Vec<f32>>) -> Image {
 
     let dimension = TextureDimension::D2;
 
-    let data: Vec<u8> = map
-        .iter()
-        .flat_map(|row| {
-            row.iter().flat_map(|&v| {
-                let v = (v * 255.0) as u8; // Convert u16 to u8, might need different conversion based on your data
-                vec![v, v, v, 10u8] // R, G, B, A
-            })
-        })
-        .collect();
+    let mut data: Vec<u8> = vec![];
+    for y in 0..height {
+        for x in 0..width {
+            let v = (map[x as usize][y as usize] * 100.0) as u8;
+            data.append(vec![v, v, v, 10u8].as_mut());
+        }
+    }
 
     let format = TextureFormat::Rgba8UnormSrgb;
     let asset_usage = RenderAssetUsages::RENDER_WORLD;
@@ -96,6 +97,7 @@ pub fn fmap_to_bevy_image(map: &Vec<Vec<f32>>) -> Image {
 }
 
 pub fn room_vec_to_bevy_image(room_vec: &Vec<Room>, res: usize) -> Image {
+    println!("room_vec_to_bevy_image");
     let size = Extent3d {
         width: res as u32,
         height: res as u32,
