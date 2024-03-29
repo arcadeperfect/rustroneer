@@ -9,7 +9,7 @@ use bevy::render::{
 use image::{ImageBuffer, Rgba};
 use planet::{
     room::Room,
-    tile_map::{Tile, TileMap},
+    tile_map::{Status, Tile, TileMap},
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
 
@@ -19,6 +19,7 @@ pub const WHITE: [u8; 4] = [255, 255, 255, 255];
 pub const RED: [u8; 4] = [255, 0, 0, 255];
 pub const GREEN: [u8; 4] = [0, 255, 0, 255];
 pub const BLUE: [u8; 4] = [0, 0, 255, 255];
+pub const ORANGE: [u8; 4] = [255, 165, 0, 255];
 
 pub fn imagebuffer_to_bevy_image(buffer: &ImageBuffer<Rgba<u8>, Vec<u8>>) -> Image {
     let width = buffer.width();
@@ -186,15 +187,15 @@ pub fn tile_map_to_bevy_image(map: &TileMap) -> Image {
                 match tile {
                     Tile::Space => BLACK,
                     Tile::Wall => GREY,
-                    Tile::Room(id) => {
-                        if let Some(id) = id {
-                            random_room_color(id as u64)
-                        }
-                        else {
-                            WHITE    
+                    Tile::Room(status) => {
+
+                        match status {
+                            Status::Designated(id) => random_room_color(id as u64),
+                            Status::Undesignated => WHITE,
                         }
                     },
                     Tile::RoomCenter(id) => random_room_color_accent(id as u64),
+                    Tile::Tunnel(_) => ORANGE,
                     _ => GREEN,
                 }
             })

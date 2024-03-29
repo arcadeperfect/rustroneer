@@ -328,10 +328,16 @@ fn update_planet_texture(
                                 Some(rooms) => umap_to_bevy_image(rooms),
                                 None => continue,
                             },
-                            SelectedOption::RoomsDebug => match &planet.rooms {
+                            SelectedOption::RoomsDebug => match &planet.roooms {
                                 // Some(rooms) => imagebuffer_to_bevy_image(rooms_debug),
                                 Some(t) => {
-                                    room_vec_to_bevy_image(t, planet.get_dimension().unwrap())
+                                    continue;
+                                    // if let Some(rooms) = t.rooms{
+                                    //     room_vec_to_bevy_image(rooms, planet.get_dimension().unwrap())    
+                                    // }
+                                    // else {
+                                    //     continue;
+                                    // }
                                 }
                                 None => continue,
                             },
