@@ -1,11 +1,11 @@
-use bevy::{prelude::*, utils::tracing};
+use bevy::{ecs::query, prelude::*, utils::tracing};
 use bevy_rapier2d::prelude::*;
-use planet::{planet_data::PlanetData, PlanetBuilder, PlanetOptions};
+use planet::{planet_data::{self, PlanetData}, remarch, PlanetBuilder, PlanetOptions};
 
 
 use crate::{
     line::{LineList, LineMaterial},
-    ui::UiChangedEvent,
+    ui::{GeneralUpdateEvent, RegeneratePlanetEvent},
     ui_state::{BitmapDisplay, UiState},
 };
 
@@ -28,7 +28,10 @@ impl Plugin for PlanetPlugin {
             .add_systems(Update, update_planet_root_system)
             // .add_systems(Update, update_planet_texture_transform)
             .add_systems(PostStartup, spawn_planet_map_visualiser_system)
-            .add_systems(Update, update_planet_texture);
+            .add_systems(Update, update_planet_texture)
+            // .add_systems(Update, rremarch);
+            .add_systems(Update, refresh_planet_texture)
+            ;
     }
 }
 
@@ -92,7 +95,7 @@ fn spawn_planet_root_system(mut commands: Commands, state: ResMut<UiState>) {
 fn update_planet_root_system(
     mut query: Query<&mut Transform, With<PlanetRootTag>>,
     state: Res<UiState>,
-    mut events: EventReader<UiChangedEvent>,
+    mut events: EventReader<GeneralUpdateEvent>,
     mut vis_query: Query<&mut Visibility, With<PlanetRootTag>>,
 ) {
     let ui_event = events.read();
@@ -115,9 +118,9 @@ fn update_planet_root_system(
 }
 
 fn rebuild_planet_system(
-    mut commands: Commands,
+    mut cmd: Commands,
     builder_resource: ResMut<PlanetBuilderResource>,
-    mut events: EventReader<UiChangedEvent>,
+    mut events: EventReader<RegeneratePlanetEvent>,
     mut planet_query: Query<(Entity, &mut BevyPlanet), With<Name>>,
 ) {
     if events.is_empty() {
@@ -135,9 +138,9 @@ fn rebuild_planet_system(
             Ok(planet) => {
                 if let Ok((entity, mut bevy_planet)) = planet_query.get_single_mut() {
                     bevy_planet.planet_data = Some(planet);
-                    commands.entity(entity).insert(NeedsMeshUpdate);
-                    commands.entity(entity).insert(NeedsColliderUpdate);
-                    commands.entity(entity).insert(NeedsTextureUpdate);
+                    cmd.entity(entity).insert(NeedsMeshUpdate);
+                    cmd.entity(entity).insert(NeedsColliderUpdate);
+                    cmd.entity(entity).insert(NeedsTextureUpdate);
                 }
             }
             Err(err) => {
@@ -151,9 +154,24 @@ fn rebuild_planet_system(
     events.clear();
 }
 
+fn refresh_planet_texture(
+    mut cmd: Commands,
+    mut events: EventReader<GeneralUpdateEvent>,
+    mut planet_query: Query<(Entity, &mut BevyPlanet), With<Name>>,
+) {
+    for event in events.read(){
+        if let Ok((entity, mut bevy_planet)) = planet_query.get_single_mut() {
+            // cmd.entity(entity).insert(NeedsMeshUpdate);
+            // cmd.entity(entity).insert(NeedsColliderUpdate);
+            cmd.entity(entity).insert(NeedsTextureUpdate);
+        }
+    }
+}
+
+
 fn spawn_planet_mesh_system(
     planet_query: Query<(&BevyPlanet, &NeedsMeshUpdate), With<Name>>,
-    mut commands: Commands,
+    mut cmd: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut line_materials: ResMut<Assets<LineMaterial>>,
     mut mesh_query: Query<(Entity, &mut PlanetMeshTag)>,
@@ -162,12 +180,12 @@ fn spawn_planet_mesh_system(
     for (bevy_planet, _) in planet_query.iter() {
         if let Some(planet) = bevy_planet.planet_data.as_ref() {
             for (mesh_entity, _) in mesh_query.iter_mut() {
-                commands.entity(mesh_entity).despawn();
+                cmd.entity(mesh_entity).despawn();
             }
             let lines = planet.get_line_list();
             let m = meshes.add(LineList { vertices: lines });
 
-            let mesh_child = commands
+            let mesh_child = cmd
                 .spawn(MaterialMeshBundle {
                     mesh: m,
                     transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::new(1., 1., 1.)),
@@ -181,8 +199,8 @@ fn spawn_planet_mesh_system(
                 .id();
 
             if let Ok((entity, _)) = planet_root_query.get_single_mut() {
-                commands.entity(entity).push_children(&[mesh_child]);
-                commands.entity(entity).remove::<NeedsMeshUpdate>();
+                cmd.entity(entity).push_children(&[mesh_child]);
+                cmd.entity(entity).remove::<NeedsMeshUpdate>();
             }
         }
     }

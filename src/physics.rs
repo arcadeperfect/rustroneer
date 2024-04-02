@@ -4,7 +4,7 @@ use bevy_rapier2d::plugin::RapierConfiguration;
 use bevy_rapier2d::render::{DebugRenderContext, DebugRenderStyle, RapierDebugRenderPlugin};
 
 use crate::traits::IntoVec2;
-use crate::ui::UiChangedEvent;
+use crate::ui::RegeneratePlanetEvent;
 
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
@@ -38,7 +38,7 @@ fn setup_physics(mut rapier_conf: ResMut<RapierConfiguration>) {
 
 fn update_debug(
     mut rapier_debug_render_plugin: ResMut<DebugRenderContext>,
-    mut events: EventReader<UiChangedEvent>,
+    mut events: EventReader<RegeneratePlanetEvent>,
 ) {
     for event in events.read() {
         // println!("{:?}", event.ui_state.show_debug);

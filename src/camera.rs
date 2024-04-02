@@ -50,11 +50,15 @@ fn track_camera(
             }
 
             false => {
+                let s = ui_state.scale;
+                let z = s * 0.01 * 350.;
+                let x = (s * 0.01 * -87.);
                 let current_translation = camera.translation;
-                let target_translation = Vec3::new(-86., -0., 350.0);
+                let target_translation = Vec3::new(x, 0., z);
                 let new_translation = current_translation.lerp(target_translation, 0.05);
-
                 camera.translation = new_translation;
+                // camera.translation = target_translation;
+
             }
         }
     }

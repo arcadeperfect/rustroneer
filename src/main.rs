@@ -21,6 +21,7 @@ mod types;
 mod ui;
 mod ui_state;
 mod planet_gizmos;
+mod vector_shapes;
 
 #[derive(Component)]
 pub struct PlayerTag;
