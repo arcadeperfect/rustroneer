@@ -130,7 +130,7 @@ fn rebuild_planet_system(
         let options = PlanetOptions::from(event.ui_state.clone());
         let planet_data = builder_resource
             .builder
-            .build(options, state.noise.iter().collect());
+            .build(options, state.fractal_noises.iter().collect());
         match planet_data {
             Ok(planet) => {
                 if let Ok((entity, mut bevy_planet)) = planet_query.get_single_mut() {
@@ -172,7 +172,8 @@ fn spawn_planet_mesh_system(
                     mesh: m,
                     transform: Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::new(1., 1., 1.)),
                     material: line_materials.add(LineMaterial {
-                        color: Color::GREEN,
+                        // color: Color::GREEN,
+                        color: Color::rgb(1.0, 5.0, 3.0)
                     }),
                     ..Default::default()
                 })

@@ -10,7 +10,7 @@ use bevy_egui::{
     EguiContexts,
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use strum::{IntoEnumIterator}; // Import necessary traits
+use strum::IntoEnumIterator; // Import necessary traits
 
 use crate::ui_state::{BitmapDisplay, UiState};
 
@@ -69,161 +69,7 @@ fn ui_system(
             ui.add_space(smaller_space);
             let heading_style = egui::TextStyle::Heading;
             let c = 180;
-            ui.label(
-                egui::RichText::new("Noise")
-                    .text_style(heading_style)
-                    .color(egui::Color32::from_rgb(c, c, c)),
-            );
-            ui.add_space(larger_space);
 
-            let mut _noise_parameters_open = true;
-            ui.collapsing("Noise 1 Parameters", |ui| {
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[0].frequency, 0.0..=3.0)
-                            .text("noise frequency"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[0].amplitude, 0.0..=1.0)
-                            .text("noise amplitute"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[0].persistence, 0.0..=1.0)
-                            .text("noise persistence"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[0].lacunarity, 1.0..=4.0)
-                            .text("noise lacunarity"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[0].octaves, 0..=10)
-                            .text("noise octaves"),
-                    )
-                    .changed();
-            });
-            
-            ui.collapsing("Noise 2 Parameters", |ui| {
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[1].frequency, 0.0..=3.0)
-                            .text("noise frequency"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[1].amplitude, 0.0..=1.0)
-                            .text("noise amplitute"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[1].persistence, 0.0..=1.0)
-                            .text("noise persistence"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[1].lacunarity, 1.0..=4.0)
-                            .text("noise lacunarity"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[1].octaves, 0..=10)
-                            .text("noise octaves"),
-                    )
-                    .changed();
-            });
-
-            ui.collapsing("Noise 3 Parameters", |ui| {
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[2].frequency, 0.0..=3.0)
-                            .text("noise frequency"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[2].amplitude, 0.0..=1.0)
-                            .text("noise amplitute"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[2].persistence, 0.0..=1.0)
-                            .text("noise persistence"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[2].lacunarity, 1.0..=4.0)
-                            .text("noise lacunarity"),
-                    )
-                    .changed();
-
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.noise[2].octaves, 0..=10)
-                            .text("noise octaves"),
-                    )
-                    .changed();
-            });
-
-            ui.collapsing("Mask parameters", |ui| {
-                ui_changed |= ui
-                    .add(
-                        egui::Slider::new(&mut state.mask_frequency, 0.0..=3.0)
-                            .text("mask frequency"),
-                    )
-                    .changed();
-                ui_changed |= ui
-                    .add(egui::Slider::new(&mut state.mask_z, 0.0..=20.0).text("mask z"))
-                    .changed();
-            });
-
-            ui_changed |= ui
-                .add(
-                    egui::Slider::new(&mut state.displacement_scale, 0.0..=10.0)
-                        .text("displacement scale"),
-                )
-                .changed();
-
-            ui_changed |= ui
-                .add(
-                    egui::Slider::new(&mut state.displacement_frequency, 0.0..=10.0)
-                        .text("displacement frequency"),
-                )
-                .changed();
-
-            ui_changed |= ui
-                .add(
-                    egui::Slider::new(&mut state.global_amplitude, 0.0..=2.0)
-                        .text("global amplitude"),
-                )
-                .changed();
-
-            ui.add_space(smaller_space);
-            let heading_style = egui::TextStyle::Heading;
-            let c = 180;
             ui.label(
                 egui::RichText::new("Initial")
                     .text_style(heading_style)
@@ -243,8 +89,202 @@ fn ui_system(
                 .changed();
 
             ui_changed |= ui
-                .add(egui::Slider::new(&mut state.resolution, 10..=800).text("resolution"))
+                .add(egui::Slider::new(&mut state.resolution, 10..=1600).text("resolution"))
                 .changed();
+
+            ui.add_space(smaller_space);
+            let heading_style = egui::TextStyle::Heading;
+            ui.label(
+                egui::RichText::new("Noise")
+                    .text_style(heading_style)
+                    .color(egui::Color32::from_rgb(c, c, c)),
+            );
+            ui.add_space(larger_space);
+
+            let mut _noise_parameters_open = true;
+            ui.collapsing("Noise 1 Parameters", |ui| {
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[0].frequency, 0.0..=3.0)
+                            .text("noise frequency"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[0].amplitude, 0.0..=1.0)
+                            .text("noise amplitute"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[0].persistence, 0.0..=1.0)
+                            .text("noise persistence"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[0].lacunarity, 1.0..=4.0)
+                            .text("noise lacunarity"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[0].octaves, 0..=10)
+                            .text("noise octaves"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[0].offset, -1.5..=1.5)
+                            .text("noise offset"),
+                    )
+                    .changed();
+            });
+
+            ui.collapsing("Noise 2 Parameters", |ui| {
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[1].frequency, 0.0..=3.0)
+                            .text("noise frequency"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[1].amplitude, 0.0..=1.0)
+                            .text("noise amplitute"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[1].persistence, 0.0..=1.0)
+                            .text("noise persistence"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[1].lacunarity, 1.0..=4.0)
+                            .text("noise lacunarity"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[1].octaves, 0..=10)
+                            .text("noise octaves"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[1].offset, -1.5..=1.5)
+                            .text("noise offset"),
+                    )
+                    .changed();
+            });
+
+            ui.collapsing("Noise 3 Parameters", |ui| {
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[2].frequency, 0.0..=3.0)
+                            .text("noise frequency"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[2].amplitude, 0.0..=1.0)
+                            .text("noise amplitute"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[2].persistence, 0.0..=1.0)
+                            .text("noise persistence"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[2].lacunarity, 1.0..=4.0)
+                            .text("noise lacunarity"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[2].octaves, 0..=10)
+                            .text("noise octaves"),
+                    )
+                    .changed();
+
+                    ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.fractal_noises[2].offset, -1.5..=1.5)
+                            .text("noise offset"),
+                    )
+                    .changed();
+            });
+
+            ui.collapsing("Noise mask parameters", |ui| {
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise_mask_options.mask_frequency, 0.0..=3.0)
+                            .text("mask frequency"),
+                    )
+                    .changed();
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.noise_mask_options.mask_z, 0.0..=20.0)
+                            .text("mask z"),
+                    )
+                    .changed();
+            });
+
+            ui.collapsing("Displacement parameters", |ui| {
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.displacement_scale, 0.0..=10.0)
+                            .text("displacement scale"),
+                    )
+                    .changed();
+
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.displacement_frequency, 0.0..=10.0)
+                            .text("displacement frequency"),
+                    )
+                    .changed();
+            });
+
+            ui.collapsing("Global noise parameters", |ui| {
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.global_noise_options.amplitude, 0.0..=2.0)
+                            .text("global amplitude"),
+                    )
+                    .changed();
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.global_noise_options.frequency, 0.0..=2.0)
+                            .text("global frequency"),
+                    )
+                    .changed();
+                ui.horizontal(|ui| {
+                    ui_changed |= ui
+                        .add(egui::DragValue::new(&mut state.global_noise_options.z))
+                        .changed();
+                    ui.label("Z:");
+                });
+            });
 
             ui.add_space(smaller_space);
             let heading_style = egui::TextStyle::Heading;
@@ -256,47 +296,65 @@ fn ui_system(
             );
             ui.add_space(larger_space);
 
-            ui_changed |= ui
-                .add(
-                    egui::Slider::new(&mut state.ca_init_weight, 0.0..=1.)
-                        .text("c.a. init noise weight"),
-                )
-                .changed();
+            ui.collapsing("Cellular Automata", |ui| {
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.ca_options.init_weight, 0.0..=1.)
+                            .text("c.a. init noise weight"),
+                    )
+                    .changed();
 
-            ui_changed |= ui
-                .add(egui::Slider::new(&mut state.ca_iterations, 0..=150).text("c.a. iterations"))
-                .changed();
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.ca_options.iterations, 0..=150)
+                            .text("c.a. iterations"),
+                    )
+                    .changed();
 
-            ui_changed |= ui
-                .add(egui::Slider::new(&mut state.ca_thresh, 0..=16).text("c.a. threshold"))
-                .changed();
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.ca_options.threshold, 0..=16)
+                            .text("c.a. threshold"),
+                    )
+                    .changed();
 
-            ui_changed |= ui
-                .add(egui::Slider::new(&mut state.ca_misc, -16..=16).text("c.a. misc"))
-                .changed();
+                ui_changed |= ui
+                    .add(
+                        egui::Slider::new(&mut state.ca_options.search_radius, 0..=15)
+                            .text("c.a. search radius"),
+                    )
+                    .changed();
 
-            ui_changed |= ui
-                .add(
-                    egui::Slider::new(&mut state.ca_searh_radius, 0..=15)
-                        .text("c.a. search radius"),
-                )
-                .changed();
+                ui.horizontal(|ui| {
+                    ui_changed |= ui
+                        .add(egui::DragValue::new(&mut state.ca_options.seed))
+                        .changed();
+                    ui.label("seed");
+                });
 
-            ui_changed |= ui.checkbox(&mut state.invert_ca, "Invert").changed();
+                ui_changed |= ui.checkbox(&mut state.invert_ca, "Invert").changed();
 
-            ui.add_space(smaller_space);
-            let heading_style = egui::TextStyle::Heading;
-            let c = 180;
-            ui.label(
-                egui::RichText::new("Post Processing")
-                    .text_style(heading_style)
-                    .color(egui::Color32::from_rgb(c, c, c)),
-            );
-            ui.add_space(larger_space);
+                ui.collapsing("Mask", |ui| {
+                    ui_changed |= ui
+                        .add(
+                            egui::Slider::new(&mut state.ca_options.mask_options.mult, 0.0..=20.0)
+                                .text("mult"),
+                        )
+                        .changed();
+                    ui_changed |= ui
+                        .add(
+                            egui::Slider::new(&mut state.ca_options.mask_options.lift, 0.0..=20.0)
+                                .text("lift"),
+                        )
+                        .changed();
+                });
+            });
 
-            ui_changed |= ui
-                .add(egui::Slider::new(&mut state.blur, 0.0..=8.).text("post blur"))
-                .changed();
+            ui.collapsing("Post Processing", |ui| {
+                ui_changed |= ui
+                    .add(egui::Slider::new(&mut state.blur, 0.0..=8.).text("post blur"))
+                    .changed();
+            });
 
             ui.add_space(smaller_space);
             let heading_style = egui::TextStyle::Heading;
@@ -308,10 +366,13 @@ fn ui_system(
             );
             ui.add_space(larger_space);
 
-
             for variant in BitmapDisplay::iter() {
                 ui_changed |= ui
-                    .radio_value(&mut state.bitmap_dislpay, variant.clone(), format!("{:?}", variant))
+                    .radio_value(
+                        &mut state.bitmap_dislpay,
+                        variant.clone(),
+                        format!("{:?}", variant),
+                    )
                     .changed();
             }
 
@@ -337,7 +398,7 @@ fn ui_system(
             );
 
             ui_changed |= ui
-                .add(egui::Slider::new(&mut state.scale, 5.0..=100.).text("scale"))
+                .add(egui::Slider::new(&mut state.scale, 5.0..=400.).text("scale"))
                 .changed();
 
             ui.add_space(larger_space);
@@ -346,16 +407,48 @@ fn ui_system(
                 .checkbox(&mut state.gizmo_options.draw_gizmos, "Draw Gizmos")
                 .changed();
 
+            ui_changed |= ui.checkbox(&mut state.rooms, "Rooms").changed();
+
+
+
+            ui.collapsing("Player", |ui| {
                 ui_changed |= ui
-                .checkbox(&mut state.rooms, "Rooms")
-                .changed();
+                    .add(egui::Slider::new(&mut state.player_move_force, 0.0..=60.).text("move force"))
+                    .changed();
+                ui_changed |= ui
+                    .add(egui::Slider::new(&mut state.player_jetpack_force, 0.0..=60.).text("jetpack force"))
+                    .changed();
+                ui_changed |= ui
+                    .add(egui::Slider::new(&mut state.player_rotate_force, -10.0..=10.).text("rotate force"))
+                    .changed();
+            });
+
+            ui.collapsing("Camera", |ui| {
+                ui_changed |= ui
+                    .add(egui::Checkbox::new(&mut state.game_camera, "game_cam"))
+                    .changed();
+
+                    ui_changed |= ui
+                    .add(egui::Slider::new(&mut state.game_camera_zoom, -5.0..=50.).text("zoom"))
+                    .changed();
+
+                
+            });
+
+
 
             if ui_changed {
-                state.save().unwrap();
+                state.save().ok();
                 event_writer.send(UiChangedEvent {
                     ui_state: state.clone(),
                 });
             }
+
+
+
+
+
+
         })
         .response
         .rect

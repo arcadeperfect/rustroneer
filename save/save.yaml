@@ -1,0 +1,66 @@
+changed: false
+fractal_noises:
+- z: 0.0
+  frequency: 1.12
+  lacunarity: 2.11
+  octaves: 0
+  persistence: 0.37000000000000005
+  amplitude: 0.37
+  offset: 0.0
+- z: 0.0
+  frequency: 1.1400000000000001
+  lacunarity: 2.14
+  octaves: 4
+  persistence: 0.38
+  amplitude: 0.505
+  offset: 0.0
+- z: 0.0
+  frequency: 1.11
+  lacunarity: 2.12
+  octaves: 4
+  persistence: 0.373
+  amplitude: 0.373
+  offset: 0.0
+noise_mask_options:
+  mask_frequency: 1.46
+  mask_z: 0.0
+global_noise_options:
+  seed: 0
+  z: 0.0
+  frequency: 1.88
+  amplitude: 0.065
+radius: 0.955
+resolution: 590
+ca_options:
+  seed: 0
+  init_weight: 0.575
+  iterations: 60
+  search_radius: 2
+  threshold: 7
+  invert: false
+  mask_options:
+    mult: 16.95
+    lift: 0.0
+    clamp_max: 0.0
+    clamp_min: 0.0
+blur: 1.0
+bitmap_dislpay: TileMapDebug
+scale: 315.0
+show_texture: true
+show_vectors: true
+show_debug: true
+crust_thickness: 0.0
+displacement_scale: 0.0
+displacement_frequency: 0.0
+invert_ca: false
+gizmo_options:
+  draw_gizmos: false
+  draw_centers: false
+  draw_triangulation: false
+  draw_mst: false
+rooms: true
+player_jetpack_force: 18.0
+player_move_force: 18.0
+player_rotate_force: 1.0
+game_camera: true
+game_camera_zoom: 50.0

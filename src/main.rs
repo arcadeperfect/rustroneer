@@ -46,6 +46,8 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         mode: WindowMode::BorderlessFullscreen,
+                        // mode: WindowMode::SizedFullscreen,
+                        // mode::WindowMode::
                         // resolution: (1500., 800.).into(),
                         ..default()
                     }),
@@ -56,9 +58,9 @@ fn main() {
         .add_plugins(bevy_planet::lib::PlanetPlugin)
         .add_plugins((
             PlanetUiPlugin,
+            MyCameraPlugin,
             MyPlayerPlugin,
             PhysicsPlugin,
-            MyCameraPlugin,
         ))
         .add_plugins(TweeningPlugin)
         .add_plugins(PlanetGizmosPlugin)
