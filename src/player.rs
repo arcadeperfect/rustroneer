@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{input::mouse::MouseButtonInput, prelude::*};
 use bevy_rapier2d::{
     dynamics::{Damping, ExternalForce, RigidBody},
     geometry::Collider,
@@ -19,7 +19,10 @@ impl Plugin for MyPlayerPlugin {
         app.init_resource::<RocketStatusResource>();
         app.add_systems(Startup, spawn_player);
         app.add_systems(Update, (user_input, apply_angle));
-        app.add_systems(PostStartup, spawn_player_mesh_system);
+        app.add_systems(
+            PostStartup,
+            spawn_player_mesh_system,
+        );
         app.add_systems(PostStartup, spawn_rocket_ystem);
         app.add_systems(Update, set_player_direction);
         app.add_systems(Update, update_rocket_mesh_system);
@@ -30,17 +33,17 @@ impl Plugin for MyPlayerPlugin {
 }
 
 #[derive(Event, Debug)]
-pub struct PlayerEvent{
+pub struct PlayerEvent {
     pub event_type: PlayerEventType,
-    pub ui_state: ui_state::UiState
+    pub ui_state: ui_state::UiState,
 }
 
 #[derive(Debug)]
 pub enum PlayerEventType {
-   Respawn,
-   RefreshPlayer,
-   RefreshCam,
-   None
+    Respawn,
+    RefreshPlayer,
+    RefreshCam,
+    None,
 }
 impl Default for PlayerEventType {
     fn default() -> Self {
@@ -83,9 +86,12 @@ impl Default for RocketStatus {
     }
 }
 
-fn spawn_player(mut cmd: Commands, ui_state: Res<ui_state::UiState>) {
-
-    let spawn = get_spawn_point(ui_state.scale, ui_state.radius);
+fn spawn_player(
+    mut cmd: Commands,
+    ui_state: Res<ui_state::UiState>,
+) {
+    let spawn =
+        get_spawn_point(ui_state.scale, ui_state.radius);
 
     // let spawn = Vec3::new(0.0, 0.0, 0.0);
 
@@ -106,8 +112,7 @@ fn spawn_player(mut cmd: Commands, ui_state: Res<ui_state::UiState>) {
         })
         .insert(Direction {
             left_right: LeftRight::Left,
-        })
-        ;
+        });
 }
 
 fn get_spawn_point(scale: f32, radius: f32) -> Vec3 {
@@ -127,7 +132,10 @@ fn spawn_player_mesh_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut line_materials: ResMut<Assets<LineMaterial>>,
     // mut mesh_query: Query<(Entity, &mut PlanetMeshTag)>,
-    mut player_query: Query<(Entity, &mut Transform), With<MyPlayerTag>>,
+    mut player_query: Query<
+        (Entity, &mut Transform),
+        With<MyPlayerTag>,
+    >,
 ) {
     let rectangle = RRectangle::new(Vec2::new(0.5, 1.));
     let circle = RCircle::new(0.3, 20);
@@ -141,13 +149,17 @@ fn spawn_player_mesh_system(
     });
 
     let legs_mesh = meshes.add(LineList {
-        vertices: vec![Vec3::new(0.0, 0.5, 0.0), Vec3::new(0.0, -0.5, 0.0)],
+        vertices: vec![
+            Vec3::new(0.0, 0.5, 0.0),
+            Vec3::new(0.0, -0.5, 0.0),
+        ],
     });
 
     let legs_mesh = cmd
         .spawn(MaterialMeshBundle {
             mesh: legs_mesh,
-            transform: Transform::from_xyz(0.0, -0.89, 0.0).with_scale(Vec3::new(1., 1.1, 1.)),
+            transform: Transform::from_xyz(0.0, -0.89, 0.0)
+                .with_scale(Vec3::new(1., 1.1, 1.)),
             material: line_materials.add(LineMaterial {
                 color: Color::rgb(5.0, 1.0, 1.0),
             }),
@@ -160,7 +172,8 @@ fn spawn_player_mesh_system(
     let body_mesh = cmd
         .spawn(MaterialMeshBundle {
             mesh: rect_mesh.clone(),
-            transform: Transform::from_xyz(0.0, 0.1, 0.0).with_scale(Vec3::new(0.9, 1., 1.)),
+            transform: Transform::from_xyz(0.0, 0.1, 0.0)
+                .with_scale(Vec3::new(0.9, 1., 1.)),
             material: line_materials.add(LineMaterial {
                 color: Color::rgb(5.0, 1.0, 1.0),
             }),
@@ -173,7 +186,8 @@ fn spawn_player_mesh_system(
     let jet_pack_mesh = cmd
         .spawn(MaterialMeshBundle {
             mesh: rect_mesh.clone(),
-            transform: Transform::from_xyz(-0.45, 0.3, 0.0).with_scale(Vec3::new(0.9, 0.7, 1.)),
+            transform: Transform::from_xyz(-0.45, 0.3, 0.0)
+                .with_scale(Vec3::new(0.9, 0.7, 1.)),
             material: line_materials.add(LineMaterial {
                 color: Color::rgb(5.0, 1.0, 1.0),
             }),
@@ -186,7 +200,8 @@ fn spawn_player_mesh_system(
     let head_mesh = cmd
         .spawn(MaterialMeshBundle {
             mesh: circle_mesh,
-            transform: Transform::from_xyz(0.0, 1.1, 0.0).with_scale(Vec3::new(1.2, 1.2, 1.)),
+            transform: Transform::from_xyz(0.0, 1.1, 0.0)
+                .with_scale(Vec3::new(1.2, 1.2, 1.)),
             material: line_materials.add(LineMaterial {
                 color: Color::rgb(5.0, 1.0, 1.0),
             }),
@@ -198,14 +213,19 @@ fn spawn_player_mesh_system(
 
     let meshes_parent = cmd
         .spawn(SpatialBundle::from_transform(
-            Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::new(0.35, 0.35, 0.35)),
+            Transform::from_xyz(0.0, 0.0, 0.0)
+                .with_scale(Vec3::new(0.35, 0.35, 0.35)),
         ))
         .insert(Name::new("meshes"))
         .insert(PlayerMeshesParentTag)
         .id();
 
-    cmd.entity(meshes_parent)
-        .push_children(&[body_mesh, head_mesh, jet_pack_mesh, legs_mesh]);
+    cmd.entity(meshes_parent).push_children(&[
+        body_mesh,
+        head_mesh,
+        jet_pack_mesh,
+        legs_mesh,
+    ]);
 
     let entity = player_query.get_single_mut().unwrap().0;
     cmd.entity(entity).push_children(&[meshes_parent]);
@@ -226,7 +246,10 @@ fn spawn_rocket_ystem(
     mut meshes: ResMut<Assets<Mesh>>,
     mut line_materials: ResMut<Assets<LineMaterial>>,
     // mut mesh_query: Query<(Entity, &mut PlanetMeshTag)>,
-    mut player_query: Query<(Entity, &mut Transform), With<MyPlayerTag>>,
+    mut player_query: Query<
+        (Entity, &mut Transform),
+        With<MyPlayerTag>,
+    >,
 ) {
     let lines = vec![
         Vec3::noo(-1.0, -1.0),
@@ -237,15 +260,18 @@ fn spawn_rocket_ystem(
         Vec3::noo(1.0, 1.0),
     ];
 
-    let rocket_mesh = meshes.add(LineList { vertices: lines });
-    let rocket_material = line_materials.add(LineMaterial {
-        color: Color::rgb(1.0, 1.0, 5.0),
-    });
+    let rocket_mesh =
+        meshes.add(LineList { vertices: lines });
+    let rocket_material =
+        line_materials.add(LineMaterial {
+            color: Color::rgb(1.0, 1.0, 5.0),
+        });
 
     let rocket_entity = cmd
         .spawn(MaterialMeshBundle {
             mesh: rocket_mesh.clone(),
-            transform: Transform::from_xyz(0.18, -0.2, 0.0).with_scale(Vec3::noo(0.04, 0.15)),
+            transform: Transform::from_xyz(0.18, -0.2, 0.0)
+                .with_scale(Vec3::noo(0.04, 0.15)),
             material: rocket_material,
             ..Default::default()
         })
@@ -262,7 +288,8 @@ fn spawn_rocket_ystem(
     cmd.entity(rocket_parent_entity)
         .push_children(&[rocket_entity]);
 
-    let player_entity = player_query.get_single_mut().unwrap().0;
+    let player_entity =
+        player_query.get_single_mut().unwrap().0;
 
     cmd.entity(player_entity)
         .push_children(&[rocket_parent_entity]);
@@ -270,17 +297,28 @@ fn spawn_rocket_ystem(
 
 fn update_rocket_mesh_system(
     mut meshes: ResMut<Assets<Mesh>>,
-    mut rocket_query: Query<(Entity, &mut Handle<Mesh>), With<RocketTag>>,
-    mut rocket_transform_query: Query<&mut Transform, With<RocketParentTag>>,
-    mut rocket_visibility_query: Query<&mut Visibility, With<RocketParentTag>>,
+    mut rocket_query: Query<
+        (Entity, &mut Handle<Mesh>),
+        With<RocketTag>,
+    >,
+    mut rocket_transform_query: Query<
+        &mut Transform,
+        With<RocketParentTag>,
+    >,
+    mut rocket_visibility_query: Query<
+        &mut Visibility,
+        With<RocketParentTag>,
+    >,
     direction: Query<(&Direction), With<MyPlayerTag>>,
     rocket_status: Res<RocketStatusResource>,
 ) {
-    for (entity, mut mesh_handle) in rocket_query.iter_mut() {
+    for (entity, mut mesh_handle) in rocket_query.iter_mut()
+    {
         let mut rng = rand::thread_rng();
         let mut ro = || rng.gen_range(-0.5..0.5);
 
-        let mut visibility = rocket_visibility_query.single_mut();
+        let mut visibility =
+            rocket_visibility_query.single_mut();
 
         let r = &rocket_status.status;
 
@@ -297,7 +335,8 @@ fn update_rocket_mesh_system(
                     Vec3::noo(1.0 + ro(), 1.0 + ro()),
                 ];
 
-                let mut rocket_transform = rocket_transform_query.single_mut();
+                let mut rocket_transform =
+                    rocket_transform_query.single_mut();
                 let x = rocket_transform.scale.x.abs();
 
                 if let Ok(d) = direction.get_single() {
@@ -311,7 +350,8 @@ fn update_rocket_mesh_system(
                     }
                 }
 
-                let new_rocket_mesh = meshes.add(LineList { vertices: lines });
+                let new_rocket_mesh = meshes
+                    .add(LineList { vertices: lines });
                 *mesh_handle = new_rocket_mesh;
             }
             RocketStatus::NotFiring => {
@@ -322,10 +362,15 @@ fn update_rocket_mesh_system(
 }
 
 fn set_player_direction(
-    mut meshes_parent_query: Query<&mut Transform, With<PlayerMeshesParentTag>>,
+    mut meshes_parent_query: Query<
+        &mut Transform,
+        With<PlayerMeshesParentTag>,
+    >,
     direction: Query<(&Direction), With<MyPlayerTag>>,
 ) {
-    if let Ok(mut meshes_parent_transform) = meshes_parent_query.get_single_mut() {
+    if let Ok(mut meshes_parent_transform) =
+        meshes_parent_query.get_single_mut()
+    {
         let x = meshes_parent_transform.scale.x.abs();
 
         if let Ok(d) = direction.get_single() {
@@ -341,9 +386,16 @@ fn set_player_direction(
     }
 }
 
+
 fn user_input(
-    mut direction_query: Query<&mut Direction, With<MyPlayerTag>>,
-    mut query: Query<(&mut Transform, &mut ExternalForce), With<MyPlayerTag>>,
+    mut direction_query: Query<
+        &mut Direction,
+        With<MyPlayerTag>,
+    >,
+    mut query: Query<
+        (&mut Transform, &mut ExternalForce),
+        With<MyPlayerTag>,
+    >,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     ui_state: Res<ui_state::UiState>,
     mut rocket_status: ResMut<RocketStatusResource>,
@@ -357,11 +409,15 @@ fn user_input(
         ef.force = Vec2::new(0.0, 0.0);
 
         let grav_scale = 5.;
-        ef.force = -t.translation.into_vec2().normalize() * grav_scale;
+        ef.force = -t.translation.into_vec2().normalize()
+            * grav_scale;
 
-        let direction = t.translation.truncate().normalize(); // Normalize to get direction
-        let perp_clockwise = Vec2::new(-direction.y, direction.x); // Rotate 90 degrees clockwise
-        let perp_counter_clockwise = Vec2::new(direction.y, -direction.x); // Rotate 90 degrees counter-clockwise
+        let direction =
+            t.translation.truncate().normalize(); // Normalize to get direction
+        let perp_clockwise =
+            Vec2::new(-direction.y, direction.x); // Rotate 90 degrees clockwise
+        let perp_counter_clockwise =
+            Vec2::new(direction.y, -direction.x); // Rotate 90 degrees counter-clockwise
 
         if keyboard_input.pressed(KeyCode::KeyW) {
             ef.force += direction * jetpack_force;
@@ -397,27 +453,37 @@ fn reset_player_system(
     mut query: Query<&mut Transform, With<MyPlayerTag>>,
     ui_state: Res<ui_state::UiState>,
 ) {
-    for e in event_reader.read(){
-        match e.event_type{
+    for e in event_reader.read() {
+        match e.event_type {
             PlayerEventType::Respawn => {
                 for mut transform in query.iter_mut() {
                     // Reset the player position here
                     let scale = ui_state.scale;
                     let radius = ui_state.radius;
-                    transform.translation = get_spawn_point(scale, radius);
-                    println!("reset to {:?}", transform.translation);
-                }        
+                    transform.translation =
+                        get_spawn_point(scale, radius);
+                    println!(
+                        "reset to {:?}",
+                        transform.translation
+                    );
+                }
             }
-            _=> {}
+            _ => {}
         }
     }
 }
 
-fn apply_angle(mut q: Query<&mut Transform, With<MyPlayerTag>>) {
+fn apply_angle(
+    mut q: Query<&mut Transform, With<MyPlayerTag>>,
+    ui_state: Res<ui_state::UiState>,
+) {
     let mut transform = q.single_mut();
 
     let distance_to_center = distance_squared(
-        &Vec2::new(transform.translation.x, transform.translation.y),
+        &Vec2::new(
+            transform.translation.x,
+            transform.translation.y,
+        ),
         &Vec2::new(0.0, 0.0),
     );
 
@@ -426,8 +492,12 @@ fn apply_angle(mut q: Query<&mut Transform, With<MyPlayerTag>>) {
     let angle = f32::atan2(direction.x, direction.y);
     let target_rotatin = Quat::from_rotation_z(-angle);
     let current_rotation = transform.rotation;
-    let new_rotation = current_rotation.slerp(target_rotatin, 0.01);
-    transform.rotation = current_rotation.lerp(new_rotation, t);
+    let new_rotation = current_rotation.slerp(
+        target_rotatin,
+        ui_state.player_rotate_force,
+    );
+    transform.rotation =
+        current_rotation.lerp(new_rotation, t);
 }
 
 pub fn distance_squared(t1: &Vec2, t2: &Vec2) -> f32 {

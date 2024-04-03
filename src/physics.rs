@@ -1,10 +1,13 @@
 use bevy::prelude::*;
-use bevy_rapier2d::dynamics::ExternalForce;
-use bevy_rapier2d::plugin::RapierConfiguration;
-use bevy_rapier2d::render::{DebugRenderContext, DebugRenderStyle, RapierDebugRenderPlugin};
 
-use crate::traits::IntoVec2;
-use crate::ui::RegeneratePlanetEvent;
+use bevy_rapier2d::plugin::RapierConfiguration;
+use bevy_rapier2d::render::{
+    DebugRenderContext, DebugRenderStyle,
+    RapierDebugRenderPlugin,
+};
+
+
+use crate::ui::GeneralUpdateEvent;
 
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
@@ -19,13 +22,19 @@ impl Plugin for PhysicsPlugin {
                 enabled: true,
                 ..Default::default()
             })
-            .add_systems(Update, update_debug)
-            ;
+            .add_systems(Update, update_debug);
     }
 }
 
-fn setup_physics(mut rapier_conf: ResMut<RapierConfiguration>) {
+fn setup_physics(
+    mut rapier_conf: ResMut<RapierConfiguration>,
+    mut rapier_debug_render_plugin: ResMut<
+        DebugRenderContext,
+    >,
+) {
     rapier_conf.gravity = Vec2::ZERO;
+    rapier_debug_render_plugin.enabled = false;
+            
 }
 
 // fn apply_gravity(mut query: Query<(&mut ExternalForce, &Transform)>) {
@@ -37,11 +46,15 @@ fn setup_physics(mut rapier_conf: ResMut<RapierConfiguration>) {
 // }
 
 fn update_debug(
-    mut rapier_debug_render_plugin: ResMut<DebugRenderContext>,
-    mut events: EventReader<RegeneratePlanetEvent>,
+    mut rapier_debug_render_plugin: ResMut<
+        DebugRenderContext,
+    >,
+    mut events: EventReader<GeneralUpdateEvent>,
 ) {
     for event in events.read() {
         // println!("{:?}", event.ui_state.show_debug);
-        rapier_debug_render_plugin.enabled = event.ui_state.show_debug;
+        rapier_debug_render_plugin.enabled =
+            event.ui_state.show_debug;
+        // rapier_debug_render_plugin.enabled = false;
     }
 }
