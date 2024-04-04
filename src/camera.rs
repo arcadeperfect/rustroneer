@@ -1,4 +1,4 @@
-use crate::{player::MyPlayerTag, ui::OccupiedScreenSpace, ui_state};
+use crate::{player::MyPlayerTag, ui::OccupiedScreenSpace, ui_state::{self, CameraMode}};
 use bevy::{
     core_pipeline::{bloom::BloomSettings, tonemapping::Tonemapping},
     prelude::*,
@@ -34,8 +34,8 @@ fn track_camera(
             });
 
     if let (Some(mut camera), Some(player)) = (camera_transform, player_transform) {
-        match ui_state.game_camera {
-            true => {
+        match ui_state.camera_mode {
+            CameraMode::Player => {
                 let player_x = player.translation.x;
                 let player_y = player.translation.y;
                 let camera_x = camera.translation.x;
@@ -49,7 +49,27 @@ fn track_camera(
                 camera.translation.z = new_z;
             }
 
-            false => {
+            CameraMode::TexturePlanetOverview => {
+                let s = ui_state.scale;
+                let z = s * 0.01 * 240.;
+                let x = (s * 0.01 * -87.) * 2.;
+                let current_translation = camera.translation;
+                let target_translation = Vec3::new(x, 0., z);
+                let new_translation = current_translation.lerp(target_translation, 0.05);
+                camera.translation = new_translation;
+            }
+
+            CameraMode::VectorPlanetOverview => {
+                let s = ui_state.scale;
+                let z = s * 0.01 * 240.;
+                let x = 0.;
+                let current_translation = camera.translation;
+                let target_translation = Vec3::new(x, 0., z);
+                let new_translation = current_translation.lerp(target_translation, 0.05);
+                camera.translation = new_translation;
+            }
+
+            CameraMode::BothOverview => {
                 let s = ui_state.scale;
                 let z = s * 0.01 * 350.;
                 let x = (s * 0.01 * -87.);
@@ -57,8 +77,6 @@ fn track_camera(
                 let target_translation = Vec3::new(x, 0., z);
                 let new_translation = current_translation.lerp(target_translation, 0.05);
                 camera.translation = new_translation;
-                // camera.translation = target_translation;
-
             }
         }
     }
@@ -67,8 +85,8 @@ fn track_camera(
 fn apply_angle(mut q: Query<&mut Transform, With<Camera>>, ui_state: Res<ui_state::UiState>) {
     let mut transform = q.single_mut();
 
-    match ui_state.game_camera {
-        true => {
+    match ui_state.camera_mode {
+        CameraMode::Player => {
             ({
 
                 let distance_to_center = distance_squared(
@@ -92,7 +110,7 @@ fn apply_angle(mut q: Query<&mut Transform, With<Camera>>, ui_state: Res<ui_stat
             })
         }
 
-        false => {
+        _ => {
             let current_rotation = transform.rotation;
             let target_rotation = Quat::from_rotation_z(0.0);
             let new_rotation = current_rotation.slerp(target_rotation, 0.01);

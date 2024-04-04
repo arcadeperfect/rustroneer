@@ -11,7 +11,7 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use glam::{Vec2, Vec3};
 use strum::IntoEnumIterator; // Import necessary traits
 
-use crate::{bevy_planet::lib::PlanetRootTag, player::{PlayerEvent, PlayerEventType}, ui_state::{self, BitmapDisplay, UiState}};
+use crate::{bevy_planet::lib::PlanetRootTag, planet_gizmos::GizmoOptions, player::{PlayerEvent, PlayerEventType}, ui_state::{self, BitmapDisplay, CameraMode, UiState}};
 
 
 pub struct PlanetUiPlugin;
@@ -95,31 +95,25 @@ fn mouse_click_world(
 
 
     for event in cursor_position.read() {
-        // println!("{:?}", event.position);
+        
         let plane_origin = ground_transform.translation();
         let plane = Plane3d::new(Vec3::new(0., 0., -1.));
     
         // Ask Bevy to give us a ray pointing from the viewport (screen) into the world
         let offset_vec = Vec2::new(event.position.x - occupied_screen_space.left, event.position.y);
         let Some(ray) = camera.viewport_to_world(camera_transform, offset_vec) else {
-            println!("Could not convert cursor position to world");
             return;
         };
     
         // do a ray-plane intersection test, giving us the distance to the ground
         let Some(distance) = ray.intersect_plane(plane_origin, plane) else {
-            // If the ray does not intersect the ground
-            // (the camera is not looking towards the ground), we can't do anything
 
-            println!("Not looking at the ground");
             return;
         };
 
         // use the distance to compute the actual point on the ground in world-space
         let global_cursor = ray.get_point(distance);
         
-        // println!("{}", global_cursor);
-
         if clicked.pressed(MouseButton::Left) {
             click_event_writer.send(
                 MouseClickWorldEvent {
@@ -500,11 +494,24 @@ fn ui_system(
 
             ui.add_space(larger_space);
 
-            general_changed |= ui
-                .checkbox(&mut state.gizmo_options.draw_gizmos, "Draw Gizmos")
-                .changed();
+            ui.collapsing("Gizmos", |ui| {
+
+                general_changed |= ui
+                    .checkbox(&mut state.gizmo_options.draw_gizmos, "Draw Gizmos")
+                    .changed();
+                general_changed |= ui
+                    .checkbox(&mut state.gizmo_options.draw_centers, "Centers")
+                    .changed();
+                general_changed |= ui
+                    .checkbox(&mut state.gizmo_options.draw_triangulation, "Triangulation")
+                    .changed();
+                general_changed |= ui
+                    .checkbox(&mut state.gizmo_options.draw_mst, "MST")
+                    .changed();
+            });
 
             planet_gen_settings_changed |= ui.checkbox(&mut state.rooms, "Rooms").changed();
+            planet_gen_settings_changed |= ui.checkbox(&mut state.tunnels, "Tunnels").changed();
 
 
 
@@ -523,24 +530,35 @@ fn ui_system(
                 }
             });
 
+
+            
+
             ui.collapsing("Camera", |ui| {
-                camera_settings_changed |= ui
-                    .add(egui::Checkbox::new(&mut state.game_camera, "game_cam"))
-                    .changed();
+                // camera_settings_changed |= ui
+                //     .add(egui::Checkbox::new(&mut state.camera_mode, "game_cam"))
+                //     .changed();
+                for variant in CameraMode::iter() {
+                    general_changed |= ui
+                        .radio_value(
+                            &mut state.camera_mode,
+                            variant.clone(),
+                            format!("{:?}", variant),
+                        )
+                        .changed();
+                }
 
                 camera_settings_changed |= ui
                     .add(egui::Slider::new(&mut state.game_camera_zoom, -5.0..=50.).text("zoom"))
                     .changed();
             });
 
-            if ui.button("Refresh Mesh").clicked() {
-                println!("Refreshing Mesh clicked");
-                mesh_event_writer.send(ModifyMeshEvent {
-                    ui_state: state.clone(),
-                    modification: MeshModification::Add(0),
-                    moust_position: Vec2::new(0.0, 0.0),
-                });
-            }
+            // if ui.button("Refresh Mesh").clicked() {
+            //     mesh_event_writer.send(ModifyMeshEvent {
+            //         ui_state: state.clone(),
+            //         modification: MeshModification::Add(0),
+            //         moust_position: Vec2::new(0.0, 0.0),
+            //     });
+            // }
 
             if planet_gen_settings_changed {
                 state.save().ok();

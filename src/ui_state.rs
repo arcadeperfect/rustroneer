@@ -25,6 +25,14 @@ pub enum BitmapDisplay {
     TileMapDebug,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, EnumIter)]
+pub enum CameraMode {
+    TexturePlanetOverview,
+    VectorPlanetOverview,
+    BothOverview,
+    Player
+}
+
 #[derive(Resource, Debug, Clone, Serialize, Deserialize)]
 pub struct UiState {
     pub changed: bool,
@@ -46,10 +54,11 @@ pub struct UiState {
     pub invert_ca: bool,
     pub gizmo_options: GizmoOptions,
     pub rooms: bool,
+    pub tunnels: bool,
     pub player_jetpack_force: f32,
     pub player_move_force: f32,
     pub player_rotate_force: f32,
-    pub game_camera: bool,
+    pub camera_mode: CameraMode,
     pub game_camera_zoom: f32,
 }
 
@@ -79,10 +88,11 @@ impl Default for UiState {
             invert_ca: false,
             gizmo_options: GizmoOptions::default(),
             rooms: false,
+            tunnels: false,
             player_jetpack_force: 18.0,
             player_move_force: 18.0,
             player_rotate_force: 1.0,
-            game_camera: false,
+            camera_mode: CameraMode::BothOverview,
             game_camera_zoom: 30.0,
         }
     }

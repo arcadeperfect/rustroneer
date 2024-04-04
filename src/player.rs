@@ -386,7 +386,6 @@ fn set_player_direction(
     }
 }
 
-
 fn user_input(
     mut direction_query: Query<
         &mut Direction,
@@ -421,12 +420,10 @@ fn user_input(
 
         if keyboard_input.pressed(KeyCode::KeyW) {
             ef.force += direction * jetpack_force;
-            // println!("up\t {}", ef.force);
             rocket_status.status = RocketStatus::Firing;
         }
         if keyboard_input.pressed(KeyCode::KeyS) {
             ef.force -= direction * move_force;
-            // println!("down\t {}", ef.force);
             rocket_status.status = RocketStatus::Firing;
         }
         if keyboard_input.pressed(KeyCode::KeyA) {
@@ -443,8 +440,6 @@ fn user_input(
             }
             rocket_status.status = RocketStatus::Firing;
         }
-
-        // println!("{}", ef.force);
     }
 }
 
@@ -462,10 +457,6 @@ fn reset_player_system(
                     let radius = ui_state.radius;
                     transform.translation =
                         get_spawn_point(scale, radius);
-                    println!(
-                        "reset to {:?}",
-                        transform.translation
-                    );
                 }
             }
             _ => {}

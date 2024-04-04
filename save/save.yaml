@@ -1,42 +1,42 @@
 changed: false
 fractal_noises:
 - z: 0.0
-  frequency: 1.55
-  lacunarity: 2.11
-  octaves: 1
-  persistence: 0.37000000000000005
-  amplitude: 0.088
+  frequency: 1.6700000000000002
+  lacunarity: 2.48
+  octaves: 4
+  persistence: 0.54
+  amplitude: 0.692
   offset: 0.0
 - z: 0.0
-  frequency: 1.92
-  lacunarity: 1.99
-  octaves: 7
-  persistence: 0.38
-  amplitude: 0.03
+  frequency: 0.0
+  lacunarity: 0.0
+  octaves: 0
+  persistence: 0.0
+  amplitude: 0.0
   offset: 0.0
 - z: 0.0
-  frequency: 0.8800000000000001
-  lacunarity: 2.7
-  octaves: 10
-  persistence: 0.373
-  amplitude: 0.25
+  frequency: 0.0
+  lacunarity: 0.0
+  octaves: 0
+  persistence: 0.0
+  amplitude: 0.0
   offset: 0.0
 noise_mask_options:
-  mask_frequency: 1.0
-  mask_z: 9.1
+  mask_frequency: 0.39
+  mask_z: 6.55
 global_noise_options:
   seed: 0
   z: 0.0
-  frequency: 1.88
-  amplitude: 0.97
-radius: 0.87
-resolution: 450
+  frequency: 1.185
+  amplitude: 0.08
+radius: 1.0
+resolution: 1600
 ca_options:
-  seed: 0
-  init_weight: 0.292
-  iterations: 48
-  search_radius: 3
-  threshold: 7
+  seed: 34
+  init_weight: 0.16
+  iterations: 26
+  search_radius: 5
+  threshold: 10
   invert: false
   mask_options:
     mult: 0.0
@@ -45,22 +45,24 @@ ca_options:
     clamp_min: 0.0
 blur: 1.0
 bitmap_dislpay: TileMapDebug
-scale: 119.0
-show_texture: true
+scale: 386.0
+show_texture: false
 show_vectors: true
 show_debug: false
 crust_thickness: 0.0
 displacement_scale: 0.0
-displacement_frequency: 0.0
+displacement_frequency: 4.02
 invert_ca: false
 gizmo_options:
   draw_gizmos: false
-  draw_centers: false
+  draw_centers: true
   draw_triangulation: false
-  draw_mst: false
+  draw_mst: true
+  offset: false
 rooms: true
+tunnels: true
 player_jetpack_force: 18.0
 player_move_force: 18.0
-player_rotate_force: 0.01
-game_camera: true
-game_camera_zoom: 13.0
+player_rotate_force: 1.0
+camera_mode: BothOverview
+game_camera_zoom: 32.0

@@ -4,8 +4,7 @@ use planet::{
     planet_data::{
         self, flatten_and_zip, march_squares_rgba,
         PlanetData,
-    },
-    PlanetBuilder, PlanetOptions,
+    }, types::PolyLines, PlanetBuilder, PlanetOptions
 };
 
 use crate::{
@@ -28,6 +27,9 @@ impl Plugin for PlanetPlugin {
         })
         .insert_resource(TexturePlaneEntityResource {
             entity: None,
+        })
+        .insert_resource(Contours{
+            contours: None,
         })
         .add_systems(Startup, spawn_planet_root_system)
         .add_systems(PostStartup, rebuild_planet_system)
@@ -58,6 +60,11 @@ pub struct TexturePlanetEntityResource {
 #[derive(Resource)]
 struct TexturePlaneEntityResource {
     entity: Option<Entity>,
+}
+
+#[derive(Resource)]
+pub struct Contours{
+    pub contours: Option<PolyLines>,
 }
 
 #[derive(Component)]
@@ -195,6 +202,7 @@ fn modify_image_and_refresh_mesh_system(
     >,
     mut events: EventReader<MouseClickWorldEvent>,
     ui_state: Res<UiState>,
+    
 ) {
     
     for event in events.read() {
@@ -213,10 +221,6 @@ fn modify_image_and_refresh_mesh_system(
                 let x = scaled_pos.x as i32;
                 let y = (r as f32 - scaled_pos.y) as i32;
 
-                println!("");
-                println!("world pos \t\t {}", event.pos);
-                println!("scaled pos \t\t {}", scaled_pos);
-
                 let brush_radius = (0.006 * r as f32) as i32;
 
                 match event.button {
@@ -224,11 +228,13 @@ fn modify_image_and_refresh_mesh_system(
                         paint(&mut d.image, x, y, brush_radius, 0);
                         cmd.entity(entity).insert(NeedsMeshUpdate);
                         cmd.entity(entity).insert(NeedsColliderUpdate);
+                        cmd.entity(entity).insert(NeedsTextureUpdate);
                     }
                     MouseButton::Right => {
                         paint(&mut d.image, x, y, brush_radius, 255);
                         cmd.entity(entity).insert(NeedsMeshUpdate);
                         cmd.entity(entity).insert(NeedsColliderUpdate);
+                        cmd.entity(entity).insert(NeedsTextureUpdate);
                     }
                     _ => {}
                 }
@@ -268,7 +274,9 @@ fn spawn_planet_mesh_system(
     mut planet_root_query: Query<(
         Entity,
         &mut PlanetRootTag,
+    
     )>,
+    mut contours: ResMut<Contours>,
 ) {
     for (bevy_planet, _) in planet_query.iter() {
         //todo separate respawning from refreshing mesh
@@ -283,8 +291,13 @@ fn spawn_planet_mesh_system(
             let lines_result =
                 march_squares_rgba(&planet.image);
 
+            
+
             if let Ok(liness) = (lines_result) {
-                let lines = flatten_and_zip(&liness);
+
+                contours.contours = Some(liness);
+
+                let lines = flatten_and_zip(contours.contours.as_ref().unwrap());
                 let m = meshes
                     .add(LineList { vertices: lines });
 
@@ -329,6 +342,7 @@ fn spawn_planet_colliders_system(
         &NeedsColliderUpdate,
     )>,
     collider_query: Query<Entity, With<PlanetColliderTag>>,
+    polylines: Res<Contours>,
 ) {
     for (planet_entity, planet, _needs_update) in
         planet_query.iter()
@@ -341,9 +355,10 @@ fn spawn_planet_colliders_system(
             // let colliders = get_colliders(&planet.polylines);
             // let colliders = get_colliders(&planet.get_polylines().unwrap());
 
-            let lines_result =
-                march_squares_rgba(&planet.image);
-            if let Ok(lines) = (lines_result) {
+            // let lines_result =
+            //     march_squares_rgba(&planet.image);
+                
+            if let Some(lines) = polylines.contours.as_ref() {
                 let colliders = get_colliders(&lines);
 
                 let mut childs = Vec::new();
