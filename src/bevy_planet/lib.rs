@@ -221,7 +221,10 @@ fn modify_image_and_refresh_mesh_system(
                 let x = scaled_pos.x as i32;
                 let y = (r as f32 - scaled_pos.y) as i32;
 
-                let brush_radius = (0.006 * r as f32) as i32;
+                let brush_radius = (0.006 * r as f32 * (ui_state.brush_size * 2.)) as i32;
+
+
+
 
                 match event.button {
                     MouseButton::Left => {
@@ -596,27 +599,69 @@ fn update_planet_texture(
 
 use image::{ImageBuffer, Rgba};
 
-fn paint(
-    mut image: &mut ImageBuffer<Rgba<u8>, Vec<u8>>,
-    x: i32,
-    y: i32,
-    radius: i32,
-    v: u8
-) {
+// fn paint(
+//     mut image: &mut ImageBuffer<Rgba<u8>, Vec<u8>>,
+//     x: i32,
+//     y: i32,
+//     radius: i32,
+//     v: u8
+// ) {
+//     let (width, height) = image.dimensions();
+
+//     for y_coord in 0..height {
+//         for x_coor in 0..width {
+//             let dx = x_coor as i32 - x;
+//             let dy = y_coord as i32 - y;
+//             let distance_squared = dx * dx + dy * dy;
+
+//             if distance_squared <= radius * radius {
+//                 image.put_pixel(x_coor, y_coord, Rgba([v, v, v, v]));
+//             }
+//         }
+//     }
+// }
+
+use std::cmp::min;
+
+fn paint(mut image: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, x: i32, y: i32, radius: i32, v: u8) {
     let (width, height) = image.dimensions();
 
-    for y_coord in 0..height {
-        for x_coor in 0..width {
-            let dx = x_coor as i32 - x;
-            let dy = y_coord as i32 - y;
-            let distance_squared = dx * dx + dy * dy;
+    // Define the thickness of the antialiasing edge.
+    let aa_edge = 3.0; // The thickness of the antialiasing in pixels.
 
-            if distance_squared <= radius * radius {
-                image.put_pixel(x_coor, y_coord, Rgba([v, v, v, v]));
+    for y_coord in 0..height {
+        for x_coord in 0..width {
+            let dx = x_coord as f32 - x as f32;
+            let dy = y_coord as f32 - y as f32;
+            let distance = (dx * dx + dy * dy).sqrt();
+            let radius_f = radius as f32;
+
+            // Check if we're within the antialiasing edge.
+            if distance <= radius_f + aa_edge && distance >= radius_f - aa_edge {
+                let alpha = ((radius_f + aa_edge - distance) / (2.0 * aa_edge)).clamp(0.0, 1.0);
+                let existing_color = image.get_pixel(x_coord, y_coord).0;
+                let blended_color = blend(existing_color, [v, v, v, (255.0 * 0.2 * alpha) as u8]);
+                image.put_pixel(x_coord, y_coord, Rgba(blended_color));
+            } else if distance < radius_f - aa_edge {
+                // Inside the circle, fully opaque
+                image.put_pixel(x_coord, y_coord, Rgba([v, v, v, 255]));
             }
         }
     }
 }
+
+// Blend two colors together based on alpha
+fn blend(color1: [u8; 4], color2: [u8; 4]) -> [u8; 4] {
+    let alpha = color2[3] as f32 / 255.0;
+    let inv_alpha = 1.0 - alpha;
+    [
+        (color1[0] as f32 * inv_alpha + color2[0] as f32 * alpha) as u8,
+        (color1[1] as f32 * inv_alpha + color2[1] as f32 * alpha) as u8,
+        (color1[2] as f32 * inv_alpha + color2[2] as f32 * alpha) as u8,
+        min(255, color1[3] + color2[3]), // Ensure alpha doesn't exceed 255
+    ]
+}
+
 
 
 

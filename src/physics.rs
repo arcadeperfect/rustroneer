@@ -8,6 +8,7 @@ use bevy_rapier2d::render::{
 
 
 use crate::ui::GeneralUpdateEvent;
+use crate::ui_state;
 
 pub struct PhysicsPlugin;
 impl Plugin for PhysicsPlugin {
@@ -50,11 +51,12 @@ fn update_debug(
         DebugRenderContext,
     >,
     mut events: EventReader<GeneralUpdateEvent>,
+    ui_state: Res<ui_state::UiState>,
 ) {
     for event in events.read() {
         // println!("{:?}", event.ui_state.show_debug);
         rapier_debug_render_plugin.enabled =
-            event.ui_state.show_debug;
+            ui_state.show_debug;
         // rapier_debug_render_plugin.enabled = false;
     }
 }

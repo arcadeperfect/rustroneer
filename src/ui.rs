@@ -63,7 +63,7 @@ pub enum MeshModification{
 
 #[derive(Event, Debug)]
 pub struct GeneralUpdateEvent {
-    pub ui_state: UiState,
+    // pub ui_state: UiState,
 }
 
 fn init_planet_system(state: ResMut<UiState>, mut event_writer: EventWriter<RegeneratePlanetEvent>) {
@@ -136,7 +136,7 @@ fn mouse_click_world(
 fn ui_system(
     mut contexts: EguiContexts,
     mut state: ResMut<UiState>,
-    mut ui_event_writer: EventWriter<RegeneratePlanetEvent>,
+    mut regenerate_event_writer: EventWriter<RegeneratePlanetEvent>,
     mut player_event_writer: EventWriter<crate::player::PlayerEvent>,
     mut mesh_event_writer: EventWriter<ModifyMeshEvent>,
     mut general_update_event_writer: EventWriter<GeneralUpdateEvent>,
@@ -155,6 +155,7 @@ fn ui_system(
     occupied_screen_space.left = egui::SidePanel::left("Hello")
         .default_width(500.)
         .show(contexts.ctx_mut(), |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
             ui.style_mut().spacing.slider_width = 300.0;
 
             ui.add_space(smaller_space);
@@ -180,7 +181,7 @@ fn ui_system(
                 .changed();
 
             planet_gen_settings_changed |= ui
-                .add(egui::Slider::new(&mut state.resolution, 10..=1600).text("resolution"))
+                .add(egui::Slider::new(&mut state.resolution, 10..=1000).text("resolution"))
                 .changed();
 
             ui.add_space(smaller_space);
@@ -343,14 +344,14 @@ fn ui_system(
             ui.collapsing("Displacement parameters", |ui| {
                 planet_gen_settings_changed |= ui
                     .add(
-                        egui::Slider::new(&mut state.displacement_scale, 0.0..=10.0)
+                        egui::Slider::new(&mut state.displacement_scale, 0.0..=50.0)
                             .text("displacement scale"),
                     )
                     .changed();
 
                 planet_gen_settings_changed |= ui
                     .add(
-                        egui::Slider::new(&mut state.displacement_frequency, 0.0..=10.0)
+                        egui::Slider::new(&mut state.displacement_frequency, 0.0..=1.0)
                             .text("displacement frequency"),
                     )
                     .changed();
@@ -483,13 +484,16 @@ fn ui_system(
             let heading_style = egui::TextStyle::Heading;
             let c = 180;
             ui.label(
-                egui::RichText::new("Entity")
+                egui::RichText::new("Option")
                     .text_style(heading_style)
                     .color(egui::Color32::from_rgb(c, c, c)),
             );
 
             general_changed |= ui
-                .add(egui::Slider::new(&mut state.scale, 5.0..=400.).text("scale"))
+                .add(egui::Slider::new(&mut state.scale, 5.0..=1200.).text("scale"))
+                .changed();
+            general_changed |= ui
+                .add(egui::Slider::new(&mut state.brush_size, 0.0..=1.).text("brush"))
                 .changed();
 
             ui.add_space(larger_space);
@@ -562,7 +566,7 @@ fn ui_system(
 
             if planet_gen_settings_changed {
                 state.save().ok();
-                ui_event_writer.send(RegeneratePlanetEvent {
+                regenerate_event_writer.send(RegeneratePlanetEvent {
                     ui_state: state.clone(),
                 });
             }
@@ -584,9 +588,9 @@ fn ui_system(
             if general_changed{
                 state.save().ok();
                 general_update_event_writer.send(GeneralUpdateEvent{
-                    ui_state: state.clone()
+                    // ui_state: state.clone()
                 });
-            }
+            }});
 
         })
         .response

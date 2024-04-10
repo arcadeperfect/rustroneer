@@ -41,7 +41,7 @@ pub fn imagebuffer_to_bevy_image(buffer: &ImageBuffer<Rgba<u8>, Vec<u8>>) -> Ima
 }
 
 pub fn umap_to_bevy_image(map: &Vec<Vec<u8>>) -> Image {
-    println!("umap_to_bevy_image");
+    // println!("umap_to_bevy_image");
     let width = map.len() as u32;
     let height = map[0].len() as u32;
 

@@ -60,6 +60,7 @@ pub struct UiState {
     pub player_rotate_force: f32,
     pub camera_mode: CameraMode,
     pub game_camera_zoom: f32,
+    pub brush_size: f32,
 }
 
 impl Default for UiState {
@@ -94,6 +95,7 @@ impl Default for UiState {
             player_rotate_force: 1.0,
             camera_mode: CameraMode::BothOverview,
             game_camera_zoom: 30.0,
+            brush_size: 0.5,
         }
     }
 }

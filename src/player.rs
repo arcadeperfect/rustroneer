@@ -6,10 +6,7 @@ use bevy_rapier2d::{
 use rand::Rng;
 
 use crate::{
-    line::{LineList, LineMaterial, LineStrip},
-    traits::IntoVec2,
-    ui_state,
-    vector_shapes::{RCircle, RRectangle},
+    line::{LineList, LineMaterial, LineStrip}, traits::IntoVec2, ui::{GeneralUpdateEvent, RegeneratePlanetEvent}, ui_state::{self, CameraMode}, vector_shapes::{RCircle, RRectangle}
 };
 
 pub struct MyPlayerPlugin;
@@ -28,6 +25,7 @@ impl Plugin for MyPlayerPlugin {
         app.add_systems(Update, update_rocket_mesh_system);
         app.add_event::<PlayerEvent>();
         app.add_systems(Update, reset_player_system);
+        app.add_systems(Update, keyboard_input);
         // app.add_systems(Update, reset_player_system);
     }
 }
@@ -383,6 +381,54 @@ fn set_player_direction(
                 }
             }
         }
+    }
+}
+
+fn keyboard_input(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut state: ResMut<ui_state::UiState>,
+    mut general_update_event_writer: EventWriter<GeneralUpdateEvent>,
+    mut player_event_writer: EventWriter<PlayerEvent>,
+    mut regenerate_event_writer: EventWriter<RegeneratePlanetEvent>,
+) {
+    if keyboard_input.pressed(KeyCode::Digit1) {
+        state.camera_mode =
+            CameraMode::TexturePlanetOverview;
+        state.show_texture = true;
+        state.show_vectors = false;
+        general_update_event_writer.send(GeneralUpdateEvent{});
+    }
+    if keyboard_input.pressed(KeyCode::Digit2) {
+        state.camera_mode =
+            CameraMode::VectorPlanetOverview;
+        state.show_texture = false;
+        state.show_vectors = true;
+        general_update_event_writer.send(GeneralUpdateEvent{});
+    }
+    if keyboard_input.pressed(KeyCode::Digit3) {
+        state.camera_mode = CameraMode::BothOverview;
+        state.show_texture = true;
+        state.show_vectors = true;
+        general_update_event_writer.send(GeneralUpdateEvent{});
+    }
+    if keyboard_input.pressed(KeyCode::Digit4) {
+        state.camera_mode = CameraMode::Player;
+        state.show_texture = false;
+        state.show_vectors = true;
+        general_update_event_writer.send(GeneralUpdateEvent{});
+    }
+    if keyboard_input.pressed(KeyCode::Digit9) {
+        state.camera_mode = CameraMode::VectorPlanetOverview;
+        state.show_texture = false;
+        state.show_vectors = true;
+        state.radius = 1.;
+        state.resolution = 575;
+        state.brush_size = 0.45;
+
+        regenerate_event_writer.send(RegeneratePlanetEvent{ ui_state: state.clone() });
+    }
+    if keyboard_input.pressed(KeyCode::KeyR) {
+        player_event_writer.send(crate::player::PlayerEvent{event_type: crate::player::PlayerEventType::Respawn, ui_state: state.clone()});
     }
 }
 
