@@ -1,7 +1,7 @@
 changed: false
 fractal_noises:
 - z: 0.0
-  frequency: 0.29
+  frequency: 0.9300000000000002
   lacunarity: 0.0
   octaves: 0
   persistence: 0.0
@@ -30,7 +30,7 @@ global_noise_options:
   frequency: 1.125
   amplitude: 1.34
 radius: 0.83
-resolution: 385
+resolution: 370
 ca_options:
   seed: 14
   init_weight: 0.295
