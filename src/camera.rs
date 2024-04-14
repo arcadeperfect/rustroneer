@@ -146,17 +146,32 @@ fn set_camera_viewport(
     windows: Query<&Window, With<PrimaryWindow>>,
     occupied_screen_space: Res<OccupiedScreenSpace>,
 ) {
-    let l = occupied_screen_space.left;
+    let occupied = occupied_screen_space.left;
 
     let mut this_camera = camera.single_mut();
 
-    let pos_x = l * 2.;
+    let pos_x = occupied * 2.;
     let pos_y = 0;
     let window = windows.single();
     let width = window.width();
     let height = window.height();
-    let width = (width * 2.) - l * 2.;
+    let width = (width * 2.) - occupied * 2.;
     let height = height * 2.;
+
+    
+    println!("\n -------- VIEWPORT NIGHTMARE -------- \n");
+
+    println!("windows.single debug output:\n\n {:?}\n", window);
+    println!("other junk\n");
+    println!("occupied left: \t\t {:?}", occupied);
+    println!("window width: \t\t {:?}", width);
+    println!("window height: \t\t {:?}", height);
+    println!("pos_x: \t\t\t {:?}", pos_x);
+    println!("pos_y: \t\t\t {:?}", pos_y);
+    println!("calculated width: \t\t {:?}", width);
+    println!("calculated height: \t\t {:?}", height);
+
+
 
     let new_viewport = Viewport {
         physical_position: UVec2::new(pos_x as u32, pos_y as u32),
